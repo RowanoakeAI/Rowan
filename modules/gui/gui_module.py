@@ -6,7 +6,6 @@ import os
 from typing import Optional
 from datetime import datetime
 import threading
-from .blur_effect import BlurFrame # Custom module for glass effect
 
 # Add forward reference hint for RowanAssistant to avoid circular imports
 from typing import TYPE_CHECKING
@@ -51,12 +50,11 @@ class RowanGUI(ctk.CTk):
         self.geometry("1200x800")
         self.configure(fg_color="#1a1a1a")
         
-        # Add blur effect to main frame
-        self.main_frame = BlurFrame(
+        # Add main frame with transparency
+        self.main_frame = ctk.CTkFrame(
             self,
             corner_radius=20,
-            blur_intensity=20,
-            transparency=0.95
+            fg_color=("#ffffff", "#1e1e1e")
         )
         self.main_frame.pack(side="right", fill="both", expand=True, padx=10, pady=10)
         

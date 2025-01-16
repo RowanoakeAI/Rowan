@@ -6,6 +6,7 @@ from core.personal_memory import InteractionContext
 from utils.logger import setup_logger
 from core.nlp import TextAnalyzer
 from core.memory_manager import MemoryManager
+from core.module_manager import ModuleInterface
 
 @dataclass
 class ConversationState:
@@ -16,7 +17,7 @@ class ConversationState:
     sentiment: float = 0.0
     topic: str = ""
 
-class ConversationModule:
+class ConversationModule(ModuleInterface):  # Add ModuleInterface inheritance
     """Handles natural conversation interactions with the assistant"""
     
     def __init__(self, memory_manager: Optional[MemoryManager] = None):
@@ -29,6 +30,23 @@ class ConversationModule:
         self.history: List[Dict[str, Any]] = []
         self.text_analyzer = TextAnalyzer()
         self.memory_manager = memory_manager or MemoryManager()
+        
+    def initialize(self, config: Dict[str, Any]) -> bool:
+        """Initialize the conversation module"""
+        try:
+            # Optional: Configure from passed settings
+            if config:
+                self.memory_manager = config.get('memory_manager', self.memory_manager)
+            
+            self.logger.info("Conversation module initialized successfully")
+            return True
+        except Exception as e:
+            self.logger.error(f"Failed to initialize conversation module: {str(e)}")
+            return False
+            
+    def shutdown(self) -> None:
+        """Clean shutdown of module"""
+        self.logger.info("Shutting down conversation module")
         
     def process(self, input_data: str, context: Dict[str, Any] = None) -> Dict[str, Any]:
         """Process conversational input"""

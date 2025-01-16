@@ -81,3 +81,5 @@ local_settings.py
 # Secrets
 secrets.json
 credentials.json
+token.pickle
+*.pickle
