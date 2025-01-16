@@ -6,6 +6,7 @@ import os
 from typing import Optional
 from datetime import datetime
 import threading
+from pathlib import Path
 
 # Add forward reference hint for RowanAssistant to avoid circular imports
 from typing import TYPE_CHECKING
@@ -38,6 +39,17 @@ class ModernMessage(ctk.CTkFrame):
 class RowanGUI(ctk.CTk):
     def __init__(self, rowan_assistant: Optional['RowanAssistant'] = None):
         super().__init__()
+        
+        # Set window icons - both methods needed for different platforms
+        icon_path = Path(__file__).parent.parent.parent / "assets" / "rowan.png"
+        if icon_path.exists():
+            # For Windows taskbar
+            self.iconbitmap(default=str(icon_path.with_suffix('.ico')))
+            # For window title bar
+            icon_image = ImageTk.PhotoImage(Image.open(icon_path))
+            self.iconphoto(True, icon_image)
+            # Keep reference to prevent garbage collection
+            self._icon_image = icon_image
         
         # Apply Fluent design
         sv_ttk.set_theme("dark")

@@ -1,11 +1,10 @@
 """
 Rowan Assistant - An AI assistant framework
-Copyright (C) 2025 Rowan Assistant Team
+Copyright (C) 2025 Rowan Development Team
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+the Free Software Foundation, either version 3 of the License, or any later version.
 """
 
 import sys
@@ -51,13 +50,14 @@ class RowanApplication:
 
     def create_tray_icon(self):
         """Create system tray icon with menu"""
-        icon_image = Image.new('RGB', (64, 64), 'blue')  # Placeholder icon
+        icon_path = Path(__file__).parent / "assets" / "rowan.png"
+        self.icon_image = Image.open(icon_path)  # Store reference
         menu = (
             pystray.MenuItem("Show", self.show_window),
             pystray.MenuItem("Hide", self.hide_window),
             pystray.MenuItem("Exit", self.exit_application)
         )
-        self.icon = pystray.Icon("Rowan", icon_image, "Rowan Assistant", menu)
+        self.icon = pystray.Icon("Rowan", self.icon_image, "Rowan Assistant", menu)
         
     def show_window(self):
         """Show main window"""

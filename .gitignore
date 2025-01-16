@@ -1,9 +1,7 @@
-# Byte-compiled / optimized / DLL files
+# Python compilation artifacts
 __pycache__/
 *.py[cod]
 *$py.class
-
-# C extensions
 *.so
 
 # Distribution / packaging
@@ -26,17 +24,7 @@ share/python-wheels/
 *.egg
 MANIFEST
 
-# PyInstaller
-#  Usually these files are written by a python script from a template
-#  before PyInstaller builds the exe, so as to inject date/other infos into it.
-*.manifest
-*.spec
-
-# Installer logs
-pip-log.txt
-pip-delete-this-directory.txt
-
-# Unit test / coverage reports
+# Testing and coverage
 htmlcov/
 .tox/
 .nox/
@@ -48,6 +36,16 @@ coverage.xml
 *.cover
 .hypothesis/
 .pytest_cache/
+cover/
+
+# Virtual environments
+.env
+.venv
+env/
+venv/
+ENV/
+.env.local
+*.env.local
 
 # IDE settings
 .idea/
@@ -55,15 +53,7 @@ coverage.xml
 *.sublime-project
 *.sublime-workspace
 
-# Environment
-.env
-.venv
-env/
-venv/
-ENV/
-*.env.local
-
-# OS generated files
+# Operating system files
 .DS_Store
 .DS_Store?
 ._*
@@ -77,9 +67,27 @@ Thumbs.db
 *.sqlite3
 *.db
 local_settings.py
+db.sqlite3
 
-# Secrets
+# Secrets and credentials
 secrets.json
 credentials.json
-token.pickle
 *.pickle
+.env.production
+.env.staging
+
+# Scripts (ignore all except specific files)
+scripts/*
+!scripts/README.md
+
+# Assets (keep specific files)
+assets/*
+!assets/rowan.png
+!assets/rowan.ico
+
+# Documentation builds
+docs/_build/
+site/
+
+# Jupyter Notebook
+.ipynb_checkpoints
