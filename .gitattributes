@@ -1,2 +1,5 @@
 # Auto detect text files and perform LF normalization
+# This setting tells Git to automatically detect text files and normalize line endings
+# - text=auto will convert line endings to LF (Linux/Unix style) when storing in repo
+# - On checkout, files will be converted to the OS's native line endings
 * text=auto

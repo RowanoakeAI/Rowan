@@ -93,27 +93,25 @@ class RowanGUI(ctk.CTk):
         )
         self.status_label.pack(side="bottom", pady=10)
         
-        # Enhanced chat container with minimum height
+        # Enhance chat container without minimum_height
         self.chat_container = ctk.CTkScrollableFrame(
             self.main_frame,
             fg_color="transparent",
             scrollbar_button_color="#2662de",
-            scrollbar_button_hover_color="#1e4fc2",
-            minimum_height=400  # Force minimum height
+            scrollbar_button_hover_color="#1e4fc2"
         )
         self.chat_container.grid(row=0, column=0, sticky="nsew", padx=10, pady=(10, 0))
         
         # Force chat container expansion
         self.chat_container.grid_columnconfigure(0, weight=1)
-        self.chat_container.grid_rowconfigure(0, weight=1)
-
-        # Configure chat display to fill container
+        
+        # Configure chat display with explicit height
         self.chat_display = ctk.CTkTextbox(
             self.chat_container,
-            fg_color="transparent",
+            fg_color="transparent", 
             font=("Inter", 14),
             wrap="word",
-            height=400  # Minimum height
+            height=600  # Increased height
         )
         self.chat_display.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
         self.chat_display.configure(state="disabled")
