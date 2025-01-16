@@ -1,0 +1,28 @@
+{
+  "name": "rowan-docs",
+  "version": "1.0.0",
+  "description": "Documentation for the Rowan AI assistant",
+  "main": "src/app.tsx",
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject"
+  },
+  "keywords": [
+    "rowan",
+    "documentation",
+    "ai",
+    "assistant"
+  ],
+  "author": "Your Name",
+  "license": "MIT",
+  "dependencies": {
+    "react": "^17.0.2",
+    "react-dom": "^17.0.2",
+    "react-scripts": "4.0.3"
+  },
+  "devDependencies": {
+    "typescript": "^4.1.2"
+  }
+}
