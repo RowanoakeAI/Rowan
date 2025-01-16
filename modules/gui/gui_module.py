@@ -42,15 +42,28 @@ class RowanGUI(ctk.CTk):
         # Apply Fluent design
         sv_ttk.set_theme("dark")
         
-        # Store rowan assistant instance
         self.rowan = rowan_assistant
+        self.processing = False
         
         # Configure window
         self.title("Rowan")
         self.geometry("1200x800")
         self.configure(fg_color="#1a1a1a")
         
-        # Add main frame with transparency
+        # Main UI setup
+        self._setup_main_frame()
+        self._setup_sidebar()
+        self._setup_chat_area()
+        self._setup_input_area()
+        
+        # Initialize animations
+        self.animations = {
+            'typing': self._create_typing_animation(),
+            'message_appear': self._create_message_animation()
+        }
+
+    def _setup_main_frame(self):
+        """Setup main frame with transparency"""
         self.main_frame = ctk.CTkFrame(
             self,
             corner_radius=20,
@@ -62,8 +75,9 @@ class RowanGUI(ctk.CTk):
         self.main_frame.grid_rowconfigure(0, weight=1, minsize=400)  # Chat container
         self.main_frame.grid_rowconfigure(1, weight=0)  # Input area
         self.main_frame.grid_columnconfigure(0, weight=1)
-        
-        # Add sidebar
+
+    def _setup_sidebar(self):
+        """Setup sidebar with clear chat button and status label"""
         self.sidebar = ctk.CTkFrame(
             self,
             width=250,
@@ -90,8 +104,9 @@ class RowanGUI(ctk.CTk):
             text_color="#909090"
         )
         self.status_label.pack(side="bottom", pady=10)
-        
-        # Enhance chat container without minimum_height
+
+    def _setup_chat_area(self):
+        """Setup chat container and display"""
         self.chat_container = ctk.CTkScrollableFrame(
             self.main_frame,
             fg_color="transparent",
@@ -118,8 +133,9 @@ class RowanGUI(ctk.CTk):
         self.chat_display._textbox.tag_configure("user", foreground="#2662de")
         self.chat_display._textbox.tag_configure("assistant", foreground="#909090")
         self.chat_display._textbox.tag_configure("timestamp", foreground="#666666")
-        
-        # Add input area
+
+    def _setup_input_area(self):
+        """Setup input area with send button"""
         self.input_area = ctk.CTkFrame(
             self.main_frame,
             height=100,
@@ -127,7 +143,7 @@ class RowanGUI(ctk.CTk):
         )
         self.input_area.grid(row=1, column=0, sticky="ew", padx=10, pady=10)
         
-        # Add message entry
+        # Message entry
         self.msg_entry = ctk.CTkEntry(
             self.input_area,
             placeholder_text="Type your message...",
@@ -141,39 +157,39 @@ class RowanGUI(ctk.CTk):
         self.input_area.grid_columnconfigure(0, weight=1)
         self.input_area.grid_columnconfigure(1, weight=0)
         
-        # Add typing indicator
-        self.typing_indicator = ctk.CTkLabel(
-            self.input_area,
-            text="Assistant is typing...",
-            text_color="#909090",
-            font=("Inter", 12)
-        )
-        self.typing_indicator.grid(row=1, column=0, padx=10, sticky="w")
-        self.typing_indicator.grid_remove()  # Hide initially
-        
-        # Load and set up send button
-        send_icon = ctk.CTkImage(Image.open("modules/gui/icons/send.png"))
-        self.send_button = ctk.CTkButton(
-            self.input_area,
-            text="",
-            image=send_icon,
-            width=40,
-            height=40,
-            corner_radius=20,
-            fg_color="#2662de",
-            hover_color="#1e4fc2",
-            command=self._send_message
-        )
+        try:
+            # Try to load send icon
+            icon_path = os.path.join(os.path.dirname(__file__), "icons", "send.png")
+            if os.path.exists(icon_path):
+                send_icon = ctk.CTkImage(Image.open(icon_path))
+                self.send_button = ctk.CTkButton(
+                    self.input_area,
+                    text="",
+                    image=send_icon,
+                    width=40,
+                    height=40,
+                    corner_radius=20,
+                    fg_color="#2662de",
+                    hover_color="#1e4fc2",
+                    command=self._send_message
+                )
+            else:
+                raise FileNotFoundError("Send icon not found")
+                
+        except Exception as e:
+            # Fallback to text button if image loading fails
+            self.send_button = ctk.CTkButton(
+                self.input_area,
+                text="Send",
+                width=70,
+                height=40,
+                corner_radius=20,
+                fg_color="#2662de",
+                hover_color="#1e4fc2",
+                command=self._send_message
+            )
+            
         self.send_button.grid(row=0, column=1, padx=(5, 10), pady=10)
-        
-        # Add animations
-        self.animations = {
-            'typing': self._create_typing_animation(),
-            'message_appear': self._create_message_animation()
-        }
-
-        # Initialize message processing
-        self.processing = False
 
     def _create_typing_animation(self):
         """Creates a simple typing indicator animation"""

@@ -151,7 +151,7 @@ class Context:
     def update_module_state(self, 
                           module_name: str,
                           is_active: bool,
-                          command: Optional[str] = None,
+                          command: Optional[str] = None, 
                           response: Optional[Dict[str, Any]] = None) -> None:
         """Track module state changes"""
         try:

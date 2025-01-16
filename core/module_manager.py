@@ -26,9 +26,10 @@ class ModuleManager:
     
     MODULE_PATHS = {
         "calendar": "skills.calendar_skill",
-        "calendar_skill": "skills.calendar_skill",  # Add alias
+        "calendar_skill": "skills.calendar_skill",  # alias
         "discord": "discord",
-        "conversation": "conversation"
+        "conversation": "conversation",
+        "spotify": "skills.spotify",  # Add this mapping
     }
     
     def __init__(self):
@@ -66,7 +67,8 @@ class ModuleManager:
                 "calendar": "GoogleCalendarSkill",
                 "calendar_skill": "GoogleCalendarSkill",
                 "discord": "DiscordModule",
-                "conversation": "ConversationModule"
+                "conversation": "ConversationModule",
+                "spotify": "SpotifySkill",  # Add this mapping
             }
             
             class_name = class_mapping.get(module_name) or f"{module_name.title()}Module"
@@ -126,8 +128,7 @@ class ModuleManager:
         """Get a loaded module by name"""
         return self.modules.get(module_name)
         
-    def process_input(self, module_name: str, input_data: Any,
-                     context: Dict[str, Any] = None) -> Dict[str, Any]:
+    def process_input(self, module_name: str, input_data: Any, context: Dict[str, Any]) -> Dict[str, Any]:
         """Process input through a specific module with context tracking"""
         try:
             module = self.get_module(module_name)

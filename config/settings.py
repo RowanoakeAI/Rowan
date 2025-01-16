@@ -19,5 +19,6 @@ class Settings:
         "discord"
     #    "voice",
         "calendar_skill",
+        "spotify"
     #    "task_skill"
     ]
