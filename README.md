@@ -1,73 +1,67 @@
-# Rowan AI Assistant
+# Rowan - Your Computer Friend!
 
-## Overview
-Rowan is a modular AI assistant system with multiple interface capabilities and skill modules.
+## What is Rowan?
+Rowan is like a friendly helper that lives in your computer. It can do lots of fun things to help you and your family!
 
-## Core Features
-- Modular architecture
-- Discord integration 
-- Calendar management
-- Personal memory system
-- Context-aware responses
-- GUI interface with modern design
+## What Can Rowan Do?
+- Talk to you through special chat rooms
+- Help remember important days like birthdays
+- Remember things you tell it
+- Understand what you're saying
+- Show pretty pictures on the screen
 
-## Installation
+## How to Get Rowan
 
-### Prerequisites
-- Python 3.8+
-- MongoDB
-- Ollama API running locally
+### What You Need First
+- A computer with Python (a special computer language)
+- A place to store memories (called MongoDB)
+- A special helper called Ollama
 
-### Setup
+### How to Set It Up
 ```bash
-# Clone repository 
+# Get Rowan from its home
 git clone https://github.com/[username]/rowan.git
 
-# Install dependencies
+# Get its toys and tools
 pip install -r requirements.txt
 
-# Configure environment
+# Tell Rowan where to live
 cp config/.env.example config/.env
-# Update .env with your settings
 ```
 
-## Module System
-- Discord Module - Chat interface and server management
-- Calendar Module - Google Calendar integration and event management
-- Memory System - Persistent storage and context management
-- GUI Module - Modern desktop interface with customtkinter
+## Rowan's Special Powers
+- Can talk to friends on Discord
+- Helps remember special days
+- Keeps memories safe
+- Shows pretty buttons and colors
 
-## Development
+## How Rowan is Built
 
-### Project Structure
+### Rowan's Home Looks Like This
 ```
 rowan/
-├── core/                 # Core system components
-├── modules/             # Interface and skill modules  
-├── data/               # Data storage and logs
-├── config/             # Configuration files
-└── utils/              # Utility functions
+├── core/                 # Rowan's brain
+├── modules/             # Rowan's special tools
+├── data/               # Rowan's memory box
+├── config/             # Rowan's rule book
+└── utils/              # Rowan's helper tools
 ```
 
-### Planned Features
-- Email integration
-- Music control
-- Weather module
-- Task management 
-- Web search
-- File management
-- System monitoring
-- Text summarization
-- Translation services
-- Voice interaction
-- Image generation
-- Note taking
-- Calculator
-- News aggregation
-- Smart home control
+### Fun Things Coming Soon!
+- Send messages like mail
+- Play music
+- Tell you about the weather
+- Help with homework
+- Find things on the internet
+- Keep your files tidy
+- Make pictures
+- Write notes
+- Do math
+- Tell you news
+- Control lights at home
 
-## Contributing
-See CONTRIBUTING.md for guidelines.
+## Want to Help?
+Look at CONTRIBUTING.md to learn how to help make Rowan better!
 
-## License
-MIT License - See LICENSE for details.
+## Rules
+Rowan is free to use! See LICENSE to learn more.
