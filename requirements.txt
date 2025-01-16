@@ -16,8 +16,11 @@ pymongo>=4.0.0
 cryptography>=3.4.0
 
 # GUI dependencies
+customtkinter>=5.0.0
+sv_ttk>=2.0.0
 tkinter; platform_system == "Windows"
 PyQt5>=5.15.0
+Pillow>=9.0.0  # Required for customtkinter
 
 # Date and time handling
 python-dateutil>=2.8.0
@@ -30,6 +33,9 @@ google-api-python-client>=2.0.0
 
 # System monitoring
 psutil>=5.8.0
+
+# HTTP and API
+requests>=2.0.0  # For Ollama API calls
 
 # Utilities
 pathlib>=1.0.1
