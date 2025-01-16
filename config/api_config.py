@@ -7,7 +7,10 @@ class APIConfig:
     
     # Security 
     API_KEY_HEADER = "X-API-Key"
-    API_KEYS = ["rowankey"]  # Replace with secure keys in production
+    # Support both simple keys and dict-based keys with expiration
+    API_KEYS = {
+        "rowankey": {}  # Empty dict means no expiration
+    }
     JWT_SECRET = "rowantest"  # Replace with secure secret in production
     
     # Rate Limiting

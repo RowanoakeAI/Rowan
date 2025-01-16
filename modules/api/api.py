@@ -118,8 +118,10 @@ class APIKeyValidator:
                 detail="Invalid API key"
             )
 
-        # Check key expiration if configured
+        # Get key data
         key_data = APIConfig.API_KEYS[api_key]
+
+        # Check expiration if configured
         if isinstance(key_data, dict) and key_data.get('expires_at'):
             if datetime.fromisoformat(key_data['expires_at']) < datetime.utcnow():
                 raise HTTPException(
