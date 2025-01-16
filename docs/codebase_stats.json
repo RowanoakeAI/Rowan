@@ -1,13 +1,13 @@
 {
   "total": {
-    "files": 48,
-    "size": 215425,
-    "words": 16515,
-    "chars": 210168,
-    "lines": 5820,
-    "code_lines": 4664,
-    "blank_lines": 880,
-    "comment_lines": 276
+    "files": 51,
+    "size": 227239,
+    "words": 17542,
+    "chars": 221543,
+    "lines": 6262,
+    "code_lines": 5050,
+    "blank_lines": 932,
+    "comment_lines": 280
   },
   "files": [
     {
@@ -243,9 +243,9 @@
     },
     {
       "path": "docs\\index.html",
-      "size": 2726,
-      "words": 162,
-      "chars": 2660,
+      "size": 2736,
+      "words": 159,
+      "chars": 2670,
       "lines": 67,
       "code_lines": 63,
       "blank_lines": 4,
@@ -265,12 +265,12 @@
     },
     {
       "path": "docs\\styles.css",
-      "size": 6586,
-      "words": 632,
-      "chars": 6247,
-      "lines": 340,
-      "code_lines": 287,
-      "blank_lines": 53,
+      "size": 8246,
+      "words": 785,
+      "chars": 7830,
+      "lines": 417,
+      "code_lines": 354,
+      "blank_lines": 63,
       "comment_lines": 0,
       "extension": ".css"
     },
@@ -537,7 +537,40 @@
       "blank_lines": 2,
       "comment_lines": 0,
       "extension": ".py"
+    },
+    {
+      "path": "docs\\doccy\\api.html",
+      "size": 2979,
+      "words": 239,
+      "chars": 2892,
+      "lines": 88,
+      "code_lines": 79,
+      "blank_lines": 9,
+      "comment_lines": 0,
+      "extension": ".html"
+    },
+    {
+      "path": "docs\\doccy\\index.html",
+      "size": 3865,
+      "words": 273,
+      "chars": 3769,
+      "lines": 97,
+      "code_lines": 89,
+      "blank_lines": 8,
+      "comment_lines": 0,
+      "extension": ".html"
+    },
+    {
+      "path": "docs\\doccy\\style.css",
+      "size": 3300,
+      "words": 365,
+      "chars": 3121,
+      "lines": 180,
+      "code_lines": 151,
+      "blank_lines": 25,
+      "comment_lines": 4,
+      "extension": ".css"
     }
   ],
-  "generated": "2025-01-16T16:46:23.558229"
+  "generated": "2025-01-16T17:10:18.850969"
 }
