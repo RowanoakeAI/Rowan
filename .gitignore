@@ -72,9 +72,7 @@ db.sqlite3
 # Secrets and credentials
 secrets.json
 credentials.json
-*.pickle
-.env.production
-.env.staging
+token.pickle
 
 # Scripts (ignore all except specific files)
 scripts/*
