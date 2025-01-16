@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rowan API Documentation</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" type="image/x-icon" href="../assets/rowan.ico">
+</head>
+<body>
+    <header>
+        <h1>Rowan API Documentation</h1>
+        <p>Comprehensive guide to using the Rowan API</p>
+    </header>
+
+    <nav>
+        <ul>
+            <li><a href="#introduction">Introduction</a></li>
+            <li><a href="#getting-started">Getting Started</a></li>
+            <li><a href="#features">Features</a></li>
+            <li><a href="#modules">Modules</a></li>
+            <li><a href="#contributing">Contributing</a></li>
+            <li><a href="api.html">API</a></li>
+            <li><a href="#faq">FAQ</a></li>
+        </ul>
+    </nav>
+
+    <main>
+        <section id="introduction">
+            <h2>Introduction</h2>
+            <p>The Rowan API allows you to interact with the Rowan assistant programmatically. You can send messages, manage tasks, and more.</p>
+        </section>
+
+        <section id="authentication">
+            <h2>Authentication</h2>
+            <p>To use the API, you need to include an API key in your requests. The API key should be included in the <code>X-API-Key</code> header.</p>
+        </section>
+
+        <section id="endpoints">
+            <h2>Endpoints</h2>
+            <h3>GET /status</h3>
+            <p>Check the status of the Rowan API.</p>
+            <pre><code>GET /status</code></pre>
+            <h3>POST /chat</h3>
+            <p>Send a message to Rowan and receive a response.</p>
+            <pre><code>POST /chat
+{
+    "message": "Hello, Rowan!",
+    "context_type": "casual",
+    "source": "api"
+}</code></pre>
+        </section>
+
+        <section id="examples">
+            <h2>Examples</h2>
+            <p>Here are some examples of how to use the Rowan API.</p>
+            <h3>Python</h3>
+            <pre><code>import requests
+
+api_key = 'your_api_key'
+url = 'http://localhost:7692/chat'
+headers = {'X-API-Key': api_key}
+data = {
+    'message': 'Hello, Rowan!',
+    'context_type': 'casual',
+    'source': 'api'
+}
+
+response = requests.post(url, json=data, headers=headers)
+print(response.json())</code></pre>
+        </section>
+
+        <section id="errors">
+            <h2>Error Codes</h2>
+            <p>The following error codes may be returned by the API:</p>
+            <ul>
+                <li><strong>401 Unauthorized:</strong> Invalid API key.</li>
+                <li><strong>429 Too Many Requests:</strong> Rate limit exceeded.</li>
+                <li><strong>500 Internal Server Error:</strong> An error occurred on the server.</li>
+            </ul>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2023 Rowan. All rights reserved.</p>
+    </footer>
+</body>
+</html>

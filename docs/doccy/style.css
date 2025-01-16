@@ -1,0 +1,180 @@
+:root {
+    --primary: #2662de;
+    --bg-dark: #1a1a1a;
+    --bg-light: #212121;
+    --text: #ffffff;
+    --text-muted: #909090;
+    --border: #333333;
+    --code-bg: #2a2a2a;
+}
+
+/* Base styles */
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    font-family: 'Inter', sans-serif;
+    margin: 0;
+    padding: 0;
+    background: var(--bg-dark);
+    color: var(--text);
+    line-height: 1.6;
+}
+
+/* Header styles */
+header {
+    text-align: center;
+    padding: 3rem 1rem;
+    background: var(--bg-light);
+    border-bottom: 1px solid var(--border);
+}
+
+header h1 {
+    font-size: 2.5rem;
+    margin: 0;
+    color: var(--primary);
+    letter-spacing: -0.5px;
+}
+
+header p {
+    margin-top: 0.75rem;
+    color: var(--text-muted);
+    font-size: 1.1rem;
+}
+
+/* Navigation styles */
+nav {
+    position: sticky;
+    top: 0;
+    background: var(--bg-light);
+    border-bottom: 1px solid var(--border);
+    z-index: 100;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+nav ul {
+    list-style: none;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    margin: 0;
+    flex-wrap: wrap;
+}
+
+nav a {
+    color: var(--text);
+    text-decoration: none;
+    padding: 1rem 1.5rem;
+    transition: all 0.2s;
+    border-bottom: 2px solid transparent;
+    display: inline-block;
+}
+
+nav a:hover {
+    color: var(--primary);
+    border-bottom: 2px solid var(--primary);
+}
+
+/* Main content */
+main {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem 1rem;
+}
+
+section {
+    margin-bottom: 3rem;
+    padding: 2rem;
+    background: var(--bg-light);
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+h2 {
+    font-size: 1.8rem;
+    color: var(--primary);
+    margin-top: 0;
+    margin-bottom: 1.5rem;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 0.5rem;
+}
+
+/* Lists and content styling */
+ul, ol {
+    padding-left: 1.5rem;
+}
+
+li {
+    margin-bottom: 0.5rem;
+}
+
+code {
+    background: var(--code-bg);
+    padding: 0.2rem 0.4rem;
+    border-radius: 4px;
+    font-family: 'Monaco', 'Consolas', monospace;
+    font-size: 0.9em;
+}
+
+a {
+    color: var(--primary);
+    text-decoration: none;
+    transition: opacity 0.2s;
+}
+
+a:hover {
+    opacity: 0.8;
+}
+
+/* Features and modules lists */
+#features ul, #modules ul {
+    list-style: none;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 1rem;
+}
+
+#features li, #modules li {
+    padding: 0.75rem;
+    background: var(--bg-dark);
+    border-radius: 4px;
+    border: 1px solid var(--border);
+}
+
+/* FAQ styling */
+#faq strong {
+    color: var(--primary);
+}
+
+/* Footer */
+footer {
+    text-align: center;
+    padding: 2rem;
+    background: var(--bg-light);
+    color: var(--text-muted);
+    border-top: 1px solid var(--border);
+    margin-top: 3rem;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    header h1 {
+        font-size: 2rem;
+    }
+
+    nav a {
+        padding: 0.75rem 1rem;
+    }
+
+    section {
+        padding: 1.5rem;
+    }
+
+    #features ul, #modules ul {
+        grid-template-columns: 1fr;
+    }
+}
