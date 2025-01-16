@@ -5,6 +5,7 @@ const RETRY_ATTEMPTS = 3;
 const RETRY_DELAY = 1000;
 const DEBOUNCE_DELAY = 300;
 const REQUEST_TIMEOUT = 5000;
+const counter = document.getElementById('counter');
 
 class RowanAPI {
     constructor(apiKey) {
@@ -123,7 +124,6 @@ let connectionCheckInterval;
 const messagesContainer = document.getElementById('chat-messages');
 const messageInput = document.getElementById('message-input');
 const sendButton = document.getElementById('send-button');
-const apiKeyInput = document.getElementById('api-key');
 const connectionStatus = document.getElementById('connection-status');
 
 // Debounce function
@@ -136,7 +136,6 @@ function debounce(func, delay) {
 }
 
 window.addEventListener('DOMContentLoaded', () => {
-    apiKeyInput.value = DEFAULT_API_KEY;
     rowanApi = new RowanAPI(DEFAULT_API_KEY);
     checkConnection();
     connectionCheckInterval = setInterval(checkConnection, 5000);
@@ -185,3 +184,12 @@ sendButton.addEventListener('click', handleSendMessage);
 messageInput.addEventListener('keypress', (e) => {
     if (e.key === 'Enter') handleSendMessage();
 });
+
+function updateCounter() {
+    const text = messageInput.value;
+    const words = text.trim() ? text.trim().split(/\s+/).length : 0;
+    const chars = text.length;
+    counter.textContent = `${words} words | ${chars} characters`;
+}
+
+messageInput.addEventListener('input', updateCounter);

@@ -223,62 +223,98 @@ class ApiModule(ModuleInterface):
     
     def __init__(self):
         self.logger = setup_logger(__name__)
-        self.app = None
+        self.port = 7692
+        self.should_run = True
         self.server_thread = None
-        self.should_run = False
-        self.port = 8000
-        
-    def initialize(self, config: Dict[str, Any]) -> bool:
-        """Initialize API module"""
+        self.app = None
+        self.connections = set()
+        self.shutdown_event = asyncio.Event()
+
+    async def _connection_handler(self, reader, writer):
+        """Handle individual connections"""
+        self.connections.add(writer)
         try:
-            self.port = config.get("api_port", 8000)
-            self.app = RowanAPI(config.get("rowan"))
-            self.should_run = True
-            
-            # Start API server in separate thread
-            self.server_thread = threading.Thread(
-                target=self._run_server,
-                daemon=True
-            )
-            self.server_thread.start()
-            
-            self.logger.info(f"API module initialized on port {self.port}")
-            return True
-            
-        except Exception as e:
-            self.logger.error(f"Failed to initialize API module: {str(e)}")
-            return False
+            while self.should_run:
+                try:
+                    data = await asyncio.wait_for(reader.read(1024), timeout=5.0)
+                    if not data:
+                        break
+                    # Process data...
+                except (asyncio.TimeoutError, ConnectionResetError):
+                    break
+        finally:
+            self.connections.remove(writer)
+            try:
+                writer.close()
+                await writer.wait_closed()
+            except Exception as e:
+                self.logger.debug(f"Error closing connection: {e}")
+
+    async def _graceful_shutdown(self):
+        """Gracefully shutdown server and connections"""
+        self.should_run = False
+        self.shutdown_event.set()
+        
+        # Close all active connections
+        for writer in self.connections:
+            try:
+                writer.close()
+                await writer.wait_closed()
+            except Exception as e:
+                self.logger.debug(f"Error closing connection: {e}")
+        
+        # Wait for connections to close
+        if self.connections:
+            try:
+                await asyncio.wait_for(
+                    asyncio.gather(*[writer.wait_closed() for writer in self.connections]),
+                    timeout=5.0
+                )
+            except asyncio.TimeoutError:
+                self.logger.warning("Timeout waiting for connections to close")
 
     def _run_server(self):
-        """Run the FastAPI server with proper event loop"""
+        """Run the FastAPI server with proper error handling"""
         try:
-            # Create and set new event loop for this thread
             loop = asyncio.new_event_loop()
             asyncio.set_event_loop(loop)
             
-            # Run uvicorn with the loop
             config = uvicorn.Config(
                 app=self.app,
-                host="0.0.0.0",
+                host="0.0.0.0", 
                 port=self.port,
                 loop=loop,
-                log_level="info"
+                timeout_keep_alive=30,
+                limit_concurrency=100
             )
             server = uvicorn.Server(config)
+            
+            # Handle signals
+            for sig in (signal.SIGTERM, signal.SIGINT):
+                loop.add_signal_handler(sig, lambda: asyncio.create_task(self._graceful_shutdown()))
+            
             loop.run_until_complete(server.serve())
             
         except Exception as e:
             self.logger.error(f"API server error: {str(e)}")
         finally:
+            try:
+                loop.run_until_complete(self._graceful_shutdown())
+            except Exception as e:
+                self.logger.error(f"Error during shutdown: {e}")
             loop.close()
-            
-    def shutdown(self) -> None:
-        """Shutdown API server"""
-        self.should_run = False
-        if self.server_thread:
-            self.server_thread.join(timeout=5.0)
-        self.logger.info("API module shut down")
 
-    def process(self, input_data: Any, context: Dict[str, Any] = None) -> Dict[str, Any]:
-        """Process is not used for API module"""
-        return {"success": True, "message": "API endpoint handles processing"}
+    def shutdown(self) -> None:
+        """Shutdown API server with proper cleanup"""
+        try:
+            self.should_run = False
+            if self.server_thread:
+                # Give time for graceful shutdown
+                self.server_thread.join(timeout=10.0)
+                if self.server_thread.is_alive():
+                    self.logger.warning("Server thread did not terminate gracefully")
+            
+            self.logger.info("API module shut down")
+            
+        except Exception as e:
+            self.logger.error(f"Error during API shutdown: {str(e)}")

@@ -3,21 +3,49 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Rowan Online</title>
+    <title>Rowan</title>
     <link rel="stylesheet" href="styles.css">
+    <link rel="icon" type="image/x-icon" href="../assets/rowan.ico">
 </head>
 <body>
+    <header>
+        <img src="../assets/rowan.png" alt="Rowan" class="logo">
+        <h1>Meet Rowan</h1>
+        <p>Your friendly AI assistant for managing tasks, conversations, and more</p>
+    </header>
+
     <div class="container">
-        <div class="chat-container">
-            <div id="chat-messages" class="messages"></div>
-            <div class="input-area">
-                <input type="text" id="message-input" placeholder="Type a message...">
-                <button id="send-button">Send</button>
-            </div>
+        <div class="info-panel">
+            <section class="features">
+                <h2>Features</h2>
+                <ul>
+                    <li>Natural conversation</li>
+                    <li>Task management</li>
+                    <li>Calendar integration</li>
+                    <li>Memory system</li>
+                </ul>
+            </section>
+
+            <section class="docs">
+                <h2>Getting Started</h2>
+                <p>Rowan is an open-source AI assistant. Try it out below or check the docs:</p>
+                <a href="https://github.com/RowanoakeAI/Rowan/doccy" class="button">Documentation</a>
+            </section>
         </div>
-        <div class="settings">
-            <input type="text" id="api-key" placeholder="Enter API Key">
-            <div class="status" id="connection-status">Disconnected</div>
+
+        <div class="chat-panel">
+            <div class="chat-container">
+                <div class="chat-header">
+                    <h2>Chat with Rowan</h2>
+                    <div class="status" id="connection-status">Disconnected</div>
+                </div>
+                <div id="chat-messages" class="messages"></div>
+                <div class="input-area">
+                    <input type="text" id="message-input" placeholder="Type a message...">
+                    <div id="counter" class="counter">0 words | 0 characters</div>
+                    <button id="send-button">Send</button>
+                </div>
+            </div>
         </div>
     </div>
     <script type="module" src="script.js"></script>
