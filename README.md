@@ -20,7 +20,7 @@ Rowan is like a friendly helper that lives in your computer. It can do lots of f
 ### How to Set It Up
 ```bash
 # Get Rowan from its home
-git clone https://github.com/[username]/rowan.git
+git clone https://github.com/RowanoakeAI/Rowan.git
 
 # Get its toys and tools
 pip install -r requirements.txt
