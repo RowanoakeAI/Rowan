@@ -1,0 +1,117 @@
+{
+    "emojis": [
+        {
+            "name": "Smug",
+            "emoji": "<a:Smug:1326901992135856148>",
+            "triggers": ["clever", "outsmart", "smug", "genius", "superior"]
+        },
+        {
+            "name": "Love",
+            "emoji": "<a:love:1326901952671383584>",
+            "triggers": ["love", "heart", "care", "adore", "wonderful"]
+        },
+        {
+            "name": "Salt",
+            "emoji": "<a:salt:1326901882941214751>",
+            "triggers": ["salty", "mad", "angry", "upset", "bitter"]
+        },
+        {
+            "name": "Oof",
+            "emoji": "<a:oof:1326901855598678077>",
+            "triggers": ["oof", "ouch", "fail", "mistake", "wrong"]
+        },
+        {
+            "name": "F",
+            "emoji": "<a:payrespects:1326901763714060308>",
+            "triggers": ["respect", "rip", "dead", "fail", "lost"]
+        },
+        {
+            "name": "Suggestive Smirk",
+            "emoji": "<a:suggestiveSmirk:1326905913537204356>",
+            "triggers": ["flirt", "wink", "tease", "suggestive", "smirk"]
+        },
+        {
+            "name": "Smug Smirk",
+            "emoji": "<a:proudSmirk:1326905900996497439>",
+            "triggers": ["proud", "confident", "smirk", "accomplished", "satisfied"]
+        },
+        {
+            "name": "Shoot",
+            "emoji": "<a:shoot:1326901628065812511>",
+            "triggers": ["shoot", "aim", "target", "blast", "fire"]
+        },
+        {
+            "name": "Vibe",
+            "emoji": "<a:danceJam:1326905674914857051>",
+            "triggers": ["dance", "party", "groove", "vibe", "jam"]
+        },
+        {
+            "name": "Bounce",
+            "emoji": "<a:Hyper:1326905656787337287>",
+            "triggers": ["bounce", "jump", "excited", "hyper", "energetic"]
+        },
+        {
+            "name": "Tea",
+            "emoji": "<a:teasip:1326905591305605131>",
+            "triggers": ["tea", "gossip", "drama", "spill", "sip"]
+        },
+        {
+            "name": "You Tried",
+            "emoji": "<:youTried:1326905572964040724>",
+            "triggers": ["attempt", "effort", "tried", "fail", "almost"]
+        },
+        {
+            "name": "Skull",
+            "emoji": "<a:skull:1326901914427986001>",
+            "triggers": ["dead", "death", "dying", "killed", "end"]
+        }
+    ],
+
+    "formatting": [
+        {
+            "name": "Bold",
+            "syntax": "**text**",
+            "description": "Makes text bold"
+        },
+        {
+            "name": "Italic",
+            "syntax": "*text* or _text_",
+            "description": "Makes text italic"
+        },
+        {
+            "name": "Underline",
+            "syntax": "__text__",
+            "description": "Underlines text"
+        },
+        {
+            "name": "Strikethrough",
+            "syntax": "~~text~~",
+            "description": "Strikes through text"
+        },
+        {
+            "name": "Code",
+            "syntax": "`text`",
+            "description": "Creates inline code format"
+        },
+        {
+            "name": "Code Block",
+            "syntax": "```text```",
+            "description": "Creates multi-line code block"
+        },
+        {
+            "name": "Quote",
+            "syntax": "> text",
+            "description": "Creates block quote"
+        },
+        {
+            "name": "Multi Quote",
+            "syntax": ">>> text",
+            "description": "Creates multi-line quote"
+        },
+        {
+            "name": "Spoiler",
+            "syntax": "||text||",
+            "description": "Hides text behind spoiler"
+        }
+    ]
+}

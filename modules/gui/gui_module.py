@@ -1,0 +1,274 @@
+import customtkinter as ctk
+from tkinter import ttk
+import sv_ttk  # For modern Fluent design
+from PIL import Image, ImageTk
+import os
+from typing import Optional
+from datetime import datetime
+import threading
+from .blur_effect import BlurFrame # Custom module for glass effect
+
+# Add forward reference hint for RowanAssistant to avoid circular imports
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from core.rowan_assistant import RowanAssistant
+
+from core.personal_memory import InteractionSource
+
+# Set theme and color scheme
+ctk.set_appearance_mode("dark") 
+ctk.set_default_color_theme("blue")
+
+class ModernMessage(ctk.CTkFrame):
+    def __init__(self, *args, **kwargs):
+        message = kwargs.pop('message', '')
+        is_user = kwargs.pop('is_user', False)
+        super().__init__(*args, **kwargs)
+        
+        self.configure(fg_color='#2662de' if is_user else '#333333')
+        
+        self.message = ctk.CTkLabel(
+            self,
+            text=message,
+            font=('Inter', 14),
+            wraplength=400,
+            justify='left'
+        )
+        self.message.pack(padx=15, pady=10)
+
+class RowanGUI(ctk.CTk):
+    def __init__(self, rowan_assistant: Optional['RowanAssistant'] = None):
+        super().__init__()
+        
+        # Apply Fluent design
+        sv_ttk.set_theme("dark")
+        
+        # Store rowan assistant instance
+        self.rowan = rowan_assistant
+        
+        # Configure window
+        self.title("Rowan")
+        self.geometry("1200x800")
+        self.configure(fg_color="#1a1a1a")
+        
+        # Add blur effect to main frame
+        self.main_frame = BlurFrame(
+            self,
+            corner_radius=20,
+            blur_intensity=20,
+            transparency=0.95
+        )
+        self.main_frame.pack(side="right", fill="both", expand=True, padx=10, pady=10)
+        
+        # Configure main_frame grid with explicit minimum size
+        self.main_frame.grid_rowconfigure(0, weight=1, minsize=400)  # Chat container
+        self.main_frame.grid_rowconfigure(1, weight=0)  # Input area
+        self.main_frame.grid_columnconfigure(0, weight=1)
+        
+        # Add sidebar
+        self.sidebar = ctk.CTkFrame(
+            self,
+            width=250,
+            corner_radius=0,
+            fg_color="#161616"
+        )
+        self.sidebar.pack(side="left", fill="y", padx=0, pady=0)
+        
+        # Add clear chat button to sidebar
+        self.clear_button = ctk.CTkButton(
+            self.sidebar,
+            text="Clear Chat",
+            command=self._clear_chat,
+            fg_color="#2662de",
+            hover_color="#1e4fc2"
+        )
+        self.clear_button.pack(padx=20, pady=20)
+        
+        # Add status variable
+        self.status_var = ctk.StringVar(value="Ready")
+        self.status_label = ctk.CTkLabel(
+            self.sidebar,
+            textvariable=self.status_var,
+            text_color="#909090"
+        )
+        self.status_label.pack(side="bottom", pady=10)
+        
+        # Enhanced chat container with minimum height
+        self.chat_container = ctk.CTkScrollableFrame(
+            self.main_frame,
+            fg_color="transparent",
+            scrollbar_button_color="#2662de",
+            scrollbar_button_hover_color="#1e4fc2",
+            minimum_height=400  # Force minimum height
+        )
+        self.chat_container.grid(row=0, column=0, sticky="nsew", padx=10, pady=(10, 0))
+        
+        # Force chat container expansion
+        self.chat_container.grid_columnconfigure(0, weight=1)
+        self.chat_container.grid_rowconfigure(0, weight=1)
+
+        # Configure chat display to fill container
+        self.chat_display = ctk.CTkTextbox(
+            self.chat_container,
+            fg_color="transparent",
+            font=("Inter", 14),
+            wrap="word",
+            height=400  # Minimum height
+        )
+        self.chat_display.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
+        self.chat_display.configure(state="disabled")
+        
+        # Configure tags on the underlying Tkinter Text widget
+        self.chat_display._textbox.tag_configure("user", foreground="#2662de")
+        self.chat_display._textbox.tag_configure("assistant", foreground="#909090")
+        self.chat_display._textbox.tag_configure("timestamp", foreground="#666666")
+        
+        # Add input area
+        self.input_area = ctk.CTkFrame(
+            self.main_frame,
+            height=100,
+            fg_color="#212121"
+        )
+        self.input_area.grid(row=1, column=0, sticky="ew", padx=10, pady=10)
+        
+        # Add message entry
+        self.msg_entry = ctk.CTkEntry(
+            self.input_area,
+            placeholder_text="Type your message...",
+            font=("Inter", 14),
+            height=40
+        )
+        self.msg_entry.grid(row=0, column=0, padx=(10, 5), pady=10, sticky="ew")
+        self.msg_entry.bind("<Return>", self._send_message)
+        
+        # Configure grid weights
+        self.input_area.grid_columnconfigure(0, weight=1)
+        self.input_area.grid_columnconfigure(1, weight=0)
+        
+        # Add typing indicator
+        self.typing_indicator = ctk.CTkLabel(
+            self.input_area,
+            text="Assistant is typing...",
+            text_color="#909090",
+            font=("Inter", 12)
+        )
+        self.typing_indicator.grid(row=1, column=0, padx=10, sticky="w")
+        self.typing_indicator.grid_remove()  # Hide initially
+        
+        # Load and set up send button
+        send_icon = ctk.CTkImage(Image.open("modules/gui/icons/send.png"))
+        self.send_button = ctk.CTkButton(
+            self.input_area,
+            text="",
+            image=send_icon,
+            width=40,
+            height=40,
+            corner_radius=20,
+            fg_color="#2662de",
+            hover_color="#1e4fc2",
+            command=self._send_message
+        )
+        self.send_button.grid(row=0, column=1, padx=(5, 10), pady=10)
+        
+        # Add animations
+        self.animations = {
+            'typing': self._create_typing_animation(),
+            'message_appear': self._create_message_animation()
+        }
+
+        # Initialize message processing
+        self.processing = False
+
+    def _create_typing_animation(self):
+        """Creates a simple typing indicator animation"""
+        def animate():
+            if not self.processing:
+                self.typing_indicator.grid_remove()
+                return
+            
+            current_text = self.typing_indicator.cget("text")
+            if current_text.count(".") >= 3:
+                self.typing_indicator.configure(text="Assistant is typing")
+            else:
+                self.typing_indicator.configure(text=current_text + ".")
+            
+            self.typing_indicator.grid()
+            self.after(500, animate)
+        
+        return animate
+
+    def _create_message_animation(self):
+        """Creates a smooth fade-in animation for new messages"""
+        def animate(widget, alpha=0.0):
+            if alpha < 1.0:
+                widget.configure(fg_color=f'#{int(alpha * 255):02x}{int(alpha * 255):02x}{int(alpha * 255):02x}')
+                self.after(50, lambda: animate(widget, alpha + 0.1))
+        
+        return animate
+
+    def _send_message(self, event=None):
+        if self.processing:
+            return
+
+        message = self.msg_entry.get().strip()
+        if not message:
+            return
+
+        self.msg_entry.delete(0, len(message))
+        self._update_chat("You", message, "user")
+        
+        self.processing = True
+        self.status_var.set("Processing...")
+        self.send_button.configure(state="disabled")
+        threading.Thread(target=self._process_message, args=(message,), daemon=True).start()
+
+    def _process_message(self, message: str):
+        try:
+            if not self.rowan:
+                response = "Error: Rowan assistant not initialized"
+            else:
+                response = self.rowan.chat(message, source=InteractionSource.GUI)
+
+            self.after(0, self._update_chat, "Assistant", response, "assistant")
+            self.after(0, self.status_var.set, "Ready")
+            self.after(0, self.send_button.configure, {"state": "normal"})
+
+        finally:
+            self.processing = False
+
+    def _update_chat(self, sender: str, message: str, tag: str):
+        self.chat_display.configure(state="normal")
+        
+        timestamp = datetime.now().strftime("%H:%M")
+        
+        self.chat_display.insert("end", f"\n{timestamp} ", "timestamp")
+        self.chat_display.insert("end", f"{sender}:\n", tag)
+        self.chat_display.insert("end", f"{message}\n")
+        
+        # Force scroll to bottom and update the widget
+        self.chat_display.see("end")
+        self.chat_display.update_idletasks()
+        self.chat_display.configure(state="disabled")
+        
+        # Ensure parent containers are scrolled too
+        self.chat_container.update_idletasks()
+        self.chat_container._parent_canvas.yview_moveto(1.0)
+
+    def _clear_chat(self):
+        if not self._show_confirmation():
+            return
+            
+        self.chat_display.configure(state="normal")
+        self.chat_display.delete("1.0", "end")
+        self.chat_display.configure(state="disabled")
+        self.status_var.set("Chat cleared")
+
+    def _show_confirmation(self) -> bool:
+        dialog = ctk.CTkInputDialog(
+            text="Type 'yes' to confirm clearing chat history",
+            title="Clear Chat",
+            fg_color="#212121",
+            button_fg_color="#2662de",
+            button_hover_color="#1e4fc2"
+        )
+        return dialog.get_input() == "yes"
