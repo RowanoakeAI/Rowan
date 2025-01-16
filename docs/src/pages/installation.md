@@ -1,16 +1,17 @@
-# Installation Instructions for Rowan AI Assistant
+# Installation Guide
 
 ## Prerequisites
-Before you begin, ensure you have the following installed on your system:
-- **Python 3.8 or higher**: Rowan requires Python to run. You can download it from [python.org](https://www.python.org/downloads/).
-- **Node.js**: Required for running the documentation site. Download it from [nodejs.org](https://nodejs.org/).
-- **MongoDB**: Rowan uses MongoDB for data storage. You can find installation instructions at [mongodb.com](https://www.mongodb.com/try/download/community).
 
-## Cloning the Repository
-To get started with Rowan, clone the repository to your local machine using the following command:
+- Python 3.8 or higher
+- MongoDB (for memory system)
+- Git
 
+## Step-by-Step Installation
+
+1. Clone the repository:
 ```bash
-git clone https://github.com/RowanoakeAI/Rowan.git
+git clone https://github.com/yourusername/Rowan.git
+cd Rowan
 ```
 
 ## Installing Dependencies

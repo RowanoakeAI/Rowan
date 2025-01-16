@@ -1,7 +1,37 @@
-# Rowan Documentation Project
+# Rowan AI Assistant
 
-## Overview
-This documentation project provides comprehensive information about the Rowan AI assistant, including installation instructions, module details, configuration settings, and API usage.
+Rowan is a modular AI assistant framework designed for extensibility and real-world applications.
+
+## Key Features
+
+- 🤖 **Modular Design** - Easily extend functionality with custom modules
+- 💬 **Multi-Platform** - Discord, GUI, and API interfaces
+- 🧠 **Memory System** - Persistent context and learning capabilities
+- 🔌 **Plugin Architecture** - Simple module development
+- 🔒 **Secure** - Built-in authentication and rate limiting
+
+## Quick Links
+
+<div class="grid cards" markdown>
+
+- :fontawesome-solid-rocket: **[Quick Start](getting-started/quick-start.md)**
+- :fontawesome-solid-book: **[Core Concepts](core/overview.md)**
+- :fontawesome-solid-code: **[API Reference](api/overview.md)**
+- :fontawesome-brands-github: **[GitHub Repository](https://github.com/yourusername/Rowan)**
+
+</div>
+
+## Module Overview
+
+Rowan's functionality is organized into modules:
+
+| Module | Description |
+|--------|-------------|
+| Discord | Discord bot integration |
+| GUI | Desktop interface |
+| Calendar | Calendar management |
+| Spotify | Music control |
+| System Monitor | Resource tracking |
 
 ## Getting Started
 
