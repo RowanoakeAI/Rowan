@@ -29,7 +29,8 @@ class ModuleManager:
         "calendar_skill": "skills.calendar_skill",  # alias
         "discord": "discord",
         "conversation": "conversation",
-        "spotify": "skills.spotify",  # Add this mapping
+        "spotify": "skills.spotify",
+        "api": "api.api"  # Updated path to match actual file structure
     }
     
     def __init__(self):

@@ -11,6 +11,7 @@ from utils.logger import setup_logger
 from utils.serialization import DataSerializer
 from config.discord_config import DiscordConfig
 from .emoji_manager import EmojiManager
+import asyncio
 
 class RowanDiscordClient(commands.Bot):
     """Discord client implementation for Rowan"""
@@ -177,12 +178,32 @@ class DiscordModule(ModuleInterface):
             "message": "Discord module handles its own processing"
         }
         
+    def _run_coroutine(self, coroutine):
+        """Helper method to run coroutines in the current event loop"""
+        try:
+            # Try to get the current event loop
+            loop = asyncio.get_event_loop()
+            if loop.is_running():
+                # If loop is running, create a future and run it
+                return asyncio.create_task(coroutine)
+            else:
+                # If loop isn't running, run the coroutine directly
+                return loop.run_until_complete(coroutine)
+        except RuntimeError:
+            # If no event loop exists in thread, create a new one
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+            try:
+                return loop.run_until_complete(coroutine)
+            finally:
+                loop.close()
+                
     def shutdown(self) -> None:
         """Shutdown Discord module"""
         try:
             if self.client:
-                import asyncio
-                asyncio.create_task(self.client.close())
+                # Properly await the client shutdown
+                self._run_coroutine(self.client.close())
             self.logger.info("Discord module shut down successfully")
         except Exception as e:
             self.logger.error(f"Error shutting down Discord module: {str(e)}")

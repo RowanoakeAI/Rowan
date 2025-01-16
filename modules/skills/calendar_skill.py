@@ -310,3 +310,24 @@ class GoogleCalendarSkill(ModuleInterface):
     def _handle_list(self, input_text: str, context: Dict[str, Any]) -> Dict[str, Any]:
         """Handle listing events"""
         return self._handle_check(input_text, context)
+
+    def shutdown(self) -> None:
+        """Clean shutdown of calendar module"""
+        try:
+            # Close memory system connection
+            if hasattr(self, 'memory'):
+                self.memory.close()
+            
+            # Clear credentials and service
+            if hasattr(self, 'service'):
+                self.service = None
+            if hasattr(self, 'creds'):
+                self.creds = None
+                
+            # Clear initialized state
+            self.initialized = False
+            
+            self.logger.info("Calendar module shut down successfully")
+            
+        except Exception as e:
+            self.logger.error(f"Error during calendar module shutdown: {str(e)}")

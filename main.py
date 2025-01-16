@@ -7,6 +7,7 @@ it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or any later version.
 """
 
+import signal
 import sys
 import asyncio
 from pathlib import Path
@@ -33,6 +34,7 @@ from modules.discord import DiscordModule
 from modules.gui import RowanGUI
 from modules.skills.calendar_skill import GoogleCalendarSkill
 from config.discord_config import DiscordConfig
+from config.api_config import APIConfig
 
 class RowanApplication:
     def __init__(self):
@@ -46,6 +48,11 @@ class RowanApplication:
         self.window_closed = False
         self.icon = None
         self.window_hidden = False
+        self._shutting_down = False
+        
+        # Set up signal handlers
+        signal.signal(signal.SIGINT, self._signal_handler)
+        signal.signal(signal.SIGTERM, self._signal_handler)
         atexit.register(self.cleanup)
 
     def create_tray_icon(self):
@@ -73,38 +80,64 @@ class RowanApplication:
         
     def exit_application(self):
         """Exit application from tray"""
-        self.window_closed = True
-        self.icon.stop()
-        self.cleanup()
-        sys.exit(0)
+        if not self._shutting_down:
+            self.window_closed = True
+            if self.icon:
+                self.icon.stop()
+            self.cleanup()
+            sys.exit(0)
 
     def on_window_closing(self):
         """Handler for window close button"""
         self.hide_window()
         return
 
+    def _signal_handler(self, signum, frame):
+        """Handle termination signals gracefully"""
+        if not self._shutting_down:
+            self.logger.info(f"Received signal {signum}, initiating shutdown...")
+            self.exit_application()
+
     def cleanup(self):
         """Clean up threads and resources"""
-        if self.window_closed:  # Prevent multiple cleanups
-            if self.icon:
-                self.icon.stop()
-            if self.gui and self.gui.winfo_exists():
-                self.gui.quit()
-                self.gui.destroy()
-        
-        self.should_run = False
-        
-        # Handle threads
-        for thread in self.threads:
-            if thread and thread.is_alive():
-                thread.join(timeout=1.0)
-        
-        # Cleanup modules and assistant
-        if self.module_manager:
-            self.module_manager.shutdown_all()
-        
-        if self.assistant:
-            self.assistant.close()
+        if self._shutting_down:
+            return
+            
+        self._shutting_down = True
+        self.logger.info("Starting cleanup process...")
+
+        try:
+            if self.window_closed:
+                if self.icon:
+                    self.icon.stop()
+                if self.gui and self.gui.winfo_exists():
+                    self.gui.quit()
+                    self.gui.destroy()
+            
+            self.should_run = False
+            
+            # Handle threads with timeout
+            for thread in self.threads:
+                if thread and thread.is_alive():
+                    thread.join(timeout=2.0)
+            
+            # Cleanup modules and assistant
+            if self.module_manager:
+                try:
+                    self.module_manager.shutdown_all()
+                except Exception as e:
+                    self.logger.error(f"Error during module shutdown: {e}")
+            
+            if self.assistant:
+                try:
+                    self.assistant.close()
+                except Exception as e:
+                    self.logger.error(f"Error closing assistant: {e}")
+
+        except Exception as e:
+            self.logger.error(f"Error during cleanup: {e}")
+        finally:
+            self.logger.info("Cleanup completed")
 
     @contextmanager
     def managed_thread(self, target, *args, **kwargs):
@@ -121,6 +154,10 @@ class RowanApplication:
 
     def initialize(self):
         try:
+            # Initialize event loop for main thread
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+            
             # Initialize Rowan Assistant first
             self.assistant = RowanAssistant(model_name="rowdis")
             
@@ -142,17 +179,29 @@ class RowanApplication:
                     "token": DiscordConfig.DISCORD_TOKEN,
                     "rowan": self.assistant,
                     "memory": self.assistant.memory
+                }),
+                ("api", {
+                    "api_port": APIConfig.API_PORT,
+                    "rowan": self.assistant
                 })
             ]
             
-            # Load each module with its specific config
+            # Load each module with proper error handling and async support
             for module_name, module_config in modules_to_load:
                 config = base_config.copy()
                 config.update(module_config)
                 
-                if not self.module_manager.load_module(module_name, config):
-                    self.logger.error(f"Failed to load module: {module_name}")
-                    raise Exception(f"Module initialization failed: {module_name}")
+                try:
+                    # Run module loading in event loop if needed
+                    if module_name == "api":
+                        loop.run_until_complete(self._async_load_module(module_name, config))
+                    else:
+                        if not self.module_manager.load_module(module_name, config):
+                            self.logger.error(f"Failed to load module: {module_name}")
+                            raise Exception(f"Module initialization failed: {module_name}")
+                except Exception as e:
+                    self.logger.error(f"Error loading module {module_name}: {str(e)}")
+                    raise
             
             # Initialize GUI with reference to assistant after modules are loaded
             self.gui = RowanGUI(rowan_assistant=self.assistant)
@@ -168,20 +217,42 @@ class RowanApplication:
             print(f"Failed to initialize Rowan: {str(e)}")
             return False
 
+    async def _async_load_module(self, module_name: str, config: dict) -> bool:
+        """Helper method to load async modules"""
+        if not self.module_manager.load_module(module_name, config):
+            self.logger.error(f"Failed to load module: {module_name}")
+            raise Exception(f"Module initialization failed: {module_name}")
+        return True
+
     def start(self):
+        """Start the application with improved error handling"""
         if self.initialize():
             try:
-                # Start GUI main loop
-                self.gui.mainloop()
+                # Start GUI main loop with exception handling
+                if self.gui:
+                    try:
+                        self.gui.mainloop()
+                    except KeyboardInterrupt:
+                        self.logger.info("Received keyboard interrupt in main loop")
+                        self.exit_application()
+                    except Exception as e:
+                        self.logger.error(f"Error in main loop: {e}")
+                        self.exit_application()
             except Exception as e:
-                self.logger.error(f"Error in main loop: {str(e)}")
-                print(f"Error in main loop: {str(e)}")
+                self.logger.error(f"Critical error: {e}")
             finally:
                 if not self.window_closed:
                     self.cleanup()
         else:
-            print("Failed to start Rowan due to initialization error")
+            self.logger.error("Failed to start Rowan due to initialization error")
+            sys.exit(1)
 
 if __name__ == "__main__":
     app = RowanApplication()
-    app.start()
+    try:
+        app.start()
+    except KeyboardInterrupt:
+        app.exit_application()
+    except Exception as e:
+        logging.error(f"Unhandled error: {e}")
+        sys.exit(1)
