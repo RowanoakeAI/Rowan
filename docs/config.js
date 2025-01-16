@@ -1,18 +1,21 @@
-import { CONFIG } from './config.js';
-
 export const CONFIG = {
     API_PORT: 7692,
     API_HOST: 'localhost',
     API_KEY: 'publickey'
 };
 
+// Constants that can be used across files
+export const CONSTANTS = {
+    RETRY_ATTEMPTS: 3,
+    RETRY_DELAY: 10000,
+    DEBOUNCE_DELAY: 300,
+    REQUEST_TIMEOUT: 5000,
+    MAX_REQUESTS_PER_MINUTE: 60,
+    CIRCUIT_BREAKER_THRESHOLD: 5,
+    STATS_UPDATE_INTERVAL: 30000
+};
+
 const DEFAULT_API_KEY = CONFIG.API_KEY;
-const RETRY_ATTEMPTS = 3;
-const RETRY_DELAY = 1000;
-const DEBOUNCE_DELAY = 300;
-const REQUEST_TIMEOUT = 5000;
-const MAX_REQUESTS_PER_MINUTE = 60;
-const CIRCUIT_BREAKER_THRESHOLD = 5;
 
 class RowanAPI {
     constructor(apiKey) {
@@ -46,7 +49,7 @@ class RowanAPI {
             this.requestCount = 0;
             this.lastRequestTime = now;
         }
-        if (this.requestCount >= MAX_REQUESTS_PER_MINUTE) {
+        if (this.requestCount >= CONSTANTS.MAX_REQUESTS_PER_MINUTE) {
             throw new Error('Rate limit exceeded');
         }
         this.requestCount++;
@@ -54,7 +57,7 @@ class RowanAPI {
 
     async checkCircuitBreaker() {
         if (this.circuitOpen) {
-            if (Date.now() - this.lastCircuitReset > RETRY_DELAY * 5) {
+            if (Date.now() - this.lastCircuitReset > CONSTANTS.RETRY_DELAY * 5) {
                 this.circuitOpen = false;
                 this.failureCount = 0;
                 this.lastCircuitReset = Date.now();
@@ -68,7 +71,7 @@ class RowanAPI {
         try {
             await this.checkCircuitBreaker();
             const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT);
+            const timeoutId = setTimeout(() => controller.abort(), CONSTANTS.REQUEST_TIMEOUT);
 
             const response = await fetch(`${this.baseUrl}/status`, {
                 headers: {
@@ -90,14 +93,14 @@ class RowanAPI {
             console.error('Connection check failed:', error);
             this.failureCount++;
             
-            if (this.failureCount >= CIRCUIT_BREAKER_THRESHOLD) {
+            if (this.failureCount >= CONSTANTS.CIRCUIT_BREAKER_THRESHOLD) {
                 this.circuitOpen = true;
                 this.lastCircuitReset = Date.now();
             }
 
             this.reconnectAttempts++;
             if (this.reconnectAttempts < this.maxReconnectAttempts) {
-                await new Promise(resolve => setTimeout(resolve, RETRY_DELAY));
+                await new Promise(resolve => setTimeout(resolve, CONSTANTS.RETRY_DELAY));
                 return this.checkConnection();
             }
             return false;
@@ -116,7 +119,7 @@ class RowanAPI {
             }
 
             const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT);
+            const timeoutId = setTimeout(() => controller.abort(), CONSTANTS.REQUEST_TIMEOUT);
 
             const sanitizedMessage = this.sanitizeInput(message);
             const response = await fetch(`${this.baseUrl}/chat`, {
@@ -151,13 +154,13 @@ class RowanAPI {
             console.error('Request failed:', error);
             this.failureCount++;
             
-            if (this.failureCount >= CIRCUIT_BREAKER_THRESHOLD) {
+            if (this.failureCount >= CONSTANTS.CIRCUIT_BREAKER_THRESHOLD) {
                 this.circuitOpen = true;
                 this.lastCircuitReset = Date.now();
             }
 
-            if (attempt < RETRY_ATTEMPTS) {
-                await new Promise(resolve => setTimeout(resolve, RETRY_DELAY));
+            if (attempt < CONSTANTS.RETRY_ATTEMPTS) {
+                await new Promise(resolve => setTimeout(resolve, CONSTANTS.RETRY_DELAY));
                 return this.sendRequestWithRetry(message, attempt + 1);
             }
             throw error;
@@ -169,7 +172,5 @@ class RowanAPI {
         return input.replace(/[<>{}]/g, '').trim();
     }
 
-    // ... rest of the existing code ...
 }
 
-// ... rest of the existing code ...

@@ -9,6 +9,7 @@ import uuid
 import time
 from collections import defaultdict
 import jwt
+import signal
 from pydantic import BaseModel, Field
 import asyncio
 from core.module_manager import ModuleInterface

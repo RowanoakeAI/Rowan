@@ -1,10 +1,16 @@
-import { CONFIG } from './config.js';
+import { CONFIG, CONSTANTS } from './config.js';
+
+// Remove duplicate CONFIG declaration and use imported constants
+const {
+    RETRY_ATTEMPTS,
+    RETRY_DELAY,
+    DEBOUNCE_DELAY,
+    REQUEST_TIMEOUT,
+    STATS_UPDATE_INTERVAL
+} = CONSTANTS;
 
 const DEFAULT_API_KEY = CONFIG.API_KEY;
-const RETRY_ATTEMPTS = 3;
-const RETRY_DELAY = 1000;
-const DEBOUNCE_DELAY = 300;
-const REQUEST_TIMEOUT = 5000;
+let statsUpdateInterval;
 const counter = document.getElementById('counter');
 
 class RowanAPI {
@@ -135,14 +141,21 @@ function debounce(func, delay) {
     };
 }
 
-window.addEventListener('DOMContentLoaded', () => {
+window.addEventListener('DOMContentLoaded', async () => {
     rowanApi = new RowanAPI(DEFAULT_API_KEY);
     checkConnection();
     connectionCheckInterval = setInterval(checkConnection, 5000);
+    
+    // Initial stats update
+    await updateCodebaseStats();
+    
+    // Set up interval for stats updates
+    statsUpdateInterval = setInterval(updateCodebaseStats, STATS_UPDATE_INTERVAL);
 });
 
 window.addEventListener('beforeunload', () => {
     clearInterval(connectionCheckInterval);
+    clearInterval(statsUpdateInterval);
 });
 
 const addMessage = (message, isUser = false) => {
@@ -193,3 +206,38 @@ function updateCounter() {
 }
 
 messageInput.addEventListener('input', updateCounter);
+
+// Add this function
+async function updateCodebaseStats() {
+    try {
+        console.log('Fetching codebase stats...');
+        const response = await fetch('codebase_stats.json');
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const data = await response.json();
+        
+        // Update DOM with stats
+        const stats = {
+            'stats-files': data.total.files,
+            'stats-lines': data.total.lines,
+            'stats-code': data.total.code_lines,
+            'stats-comments': data.total.comment_lines,
+            'stats-char': data.total.chars,
+            'stats-words': data.total.words,
+            'stats-size': (data.total.size / 1024).toFixed(2)
+        };
+
+        Object.entries(stats).forEach(([id, value]) => {
+            const element = document.getElementById(id);
+            if (element) {
+                element.textContent = typeof value === 'number' ? 
+                    value.toLocaleString() : value;
+            }
+        });
+
+        console.log('Stats updated successfully');
+    } catch (error) {
+        console.error('Failed to update codebase stats:', error);
+    }
+}

@@ -309,3 +309,32 @@
         right: 1rem;
     }
 }
+
+.stats {
+    background: rgba(255,255,255,0.05);
+    border-radius: 1rem;
+    padding: 1.5rem;
+    backdrop-filter: blur(10px);
+    transition: transform 0.2s;
+}
+
+.stats:hover {
+    transform: translateY(-2px);
+}
+
+.stats ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.stats li {
+    color: var(--text-muted);
+    margin: 0.5rem 0;
+    display: flex;
+    justify-content: space-between;
+}
+
+.stats span {
+    color: var(--text);
+}
