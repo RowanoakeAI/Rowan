@@ -37,6 +37,12 @@ from config.discord_config import DiscordConfig
 from config.api_config import APIConfig
 
 class RowanApplication:
+    # Add exit status constants
+    EXIT_SUCCESS = 0
+    EXIT_INIT_FAILURE = 1
+    EXIT_RUNTIME_ERROR = 2
+    EXIT_KEYBOARD_INTERRUPT = 3
+
     def __init__(self):
         self.assistant = None
         self.gui = None
@@ -226,33 +232,50 @@ class RowanApplication:
 
     def start(self):
         """Start the application with improved error handling"""
-        if self.initialize():
-            try:
-                # Start GUI main loop with exception handling
-                if self.gui:
-                    try:
-                        self.gui.mainloop()
-                    except KeyboardInterrupt:
-                        self.logger.info("Received keyboard interrupt in main loop")
-                        self.exit_application()
-                    except Exception as e:
-                        self.logger.error(f"Error in main loop: {e}")
-                        self.exit_application()
-            except Exception as e:
-                self.logger.error(f"Critical error: {e}")
-            finally:
-                if not self.window_closed:
-                    self.cleanup()
-        else:
-            self.logger.error("Failed to start Rowan due to initialization error")
-            sys.exit(1)
+        try:
+            if not self.initialize():
+                self.logger.error("Failed to start Rowan due to initialization error")
+                return False
+                
+            # Start GUI main loop with exception handling
+            if self.gui:
+                try:
+                    self.gui.mainloop()
+                except KeyboardInterrupt:
+                    self.logger.info("Received keyboard interrupt in main loop")
+                    return False
+                except Exception as e:
+                    self.logger.error(f"Error in main loop: {str(e)}", exc_info=True)
+                    return False
+                    
+            return True
+                
+        except Exception as e:
+            self.logger.error(f"Critical error: {str(e)}", exc_info=True)
+            return False
+        finally:
+            if not self.window_closed:
+                self.cleanup()
+
+    def shutdown(self, status_code: int) -> None:
+        """Handle application shutdown with status"""
+        try:
+            self.logger.info(f"Shutting down with status code: {status_code}")
+            self.cleanup()
+        finally:
+            sys.exit(status_code)
 
 if __name__ == "__main__":
     app = RowanApplication()
     try:
-        app.start()
+        success = app.start()
+        if not success:
+            app.shutdown(app.EXIT_INIT_FAILURE)
+        else:
+            app.shutdown(app.EXIT_SUCCESS)
     except KeyboardInterrupt:
-        app.exit_application()
+        app.logger.info("Received keyboard interrupt")
+        app.shutdown(app.EXIT_KEYBOARD_INTERRUPT)
     except Exception as e:
-        logging.error(f"Unhandled error: {e}")
-        sys.exit(1)
+        app.logger.error(f"Unhandled error: {str(e)}", exc_info=True)
+        app.shutdown(app.EXIT_RUNTIME_ERROR)
