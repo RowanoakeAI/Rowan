@@ -1,13 +1,13 @@
 {
   "total": {
-    "files": 51,
-    "size": 227239,
-    "words": 17542,
-    "chars": 221543,
-    "lines": 6262,
-    "code_lines": 5050,
-    "blank_lines": 932,
-    "comment_lines": 280
+    "files": 55,
+    "size": 242057,
+    "words": 18741,
+    "chars": 236243,
+    "lines": 6666,
+    "code_lines": 5376,
+    "blank_lines": 994,
+    "comment_lines": 296
   },
   "files": [
     {
@@ -96,6 +96,17 @@
       "code_lines": 8,
       "blank_lines": 3,
       "comment_lines": 1,
+      "extension": ".py"
+    },
+    {
+      "path": "config\\voice_config.py",
+      "size": 3240,
+      "words": 348,
+      "chars": 3125,
+      "lines": 116,
+      "code_lines": 90,
+      "blank_lines": 18,
+      "comment_lines": 8,
       "extension": ".py"
     },
     {
@@ -539,6 +550,39 @@
       "extension": ".py"
     },
     {
+      "path": "modules\\voice\\stt.py",
+      "size": 5516,
+      "words": 398,
+      "chars": 5516,
+      "lines": 130,
+      "code_lines": 107,
+      "blank_lines": 22,
+      "comment_lines": 1,
+      "extension": ".py"
+    },
+    {
+      "path": "modules\\voice\\tts.py",
+      "size": 5932,
+      "words": 441,
+      "chars": 5932,
+      "lines": 154,
+      "code_lines": 126,
+      "blank_lines": 21,
+      "comment_lines": 7,
+      "extension": ".py"
+    },
+    {
+      "path": "modules\\voice\\__init__.py",
+      "size": 130,
+      "words": 12,
+      "chars": 127,
+      "lines": 4,
+      "code_lines": 3,
+      "blank_lines": 1,
+      "comment_lines": 0,
+      "extension": ".py"
+    },
+    {
       "path": "docs\\doccy\\api.html",
       "size": 2979,
       "words": 239,
@@ -572,5 +616,5 @@
       "extension": ".css"
     }
   ],
-  "generated": "2025-01-16T17:10:18.850969"
+  "generated": "2025-01-16T18:03:01.916131"
 }
