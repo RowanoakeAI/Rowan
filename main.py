@@ -1,10 +1,5 @@
 """
 Rowan Assistant - An AI assistant framework
-Copyright (C) 2025 Rowan Development Team
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or any later version.
 """
 
 import signal
@@ -21,6 +16,7 @@ import atexit
 import tkinter as tk
 import pystray
 from PIL import Image
+from pynput import keyboard  # Add this import
 
 # Add project root to Python path
 project_root = str(Path(__file__).parent)
@@ -53,13 +49,17 @@ class RowanApplication:
         self.threads = []
         self.window_closed = False
         self.icon = None
+        self.icon_thread = None
         self.window_hidden = False
         self._shutting_down = False
+        self._icon_ready = threading.Event()
         
         # Set up signal handlers
         signal.signal(signal.SIGINT, self._signal_handler)
         signal.signal(signal.SIGTERM, self._signal_handler)
         atexit.register(self.cleanup)
+
+        self.hotkey = None
 
     def create_tray_icon(self):
         """Create system tray icon with menu"""
@@ -74,16 +74,29 @@ class RowanApplication:
         
     def show_window(self):
         """Show main window"""
-        self.window_hidden = False
-        self.icon.stop()
-        self.gui.deiconify()
+        if self.icon and self.icon_thread and self.icon_thread.is_alive():
+            self.icon.stop()
+            self.icon_thread.join()
+            self.icon_thread = None
+            
+        if self.gui:
+            self.window_hidden = False
+            self.gui.deiconify()
+            self.gui.lift()
+            self.gui.focus_force()
         
     def hide_window(self):
         """Hide main window to system tray"""
-        self.window_hidden = True
-        self.gui.withdraw()
-        threading.Thread(target=self.icon.run, daemon=True).start()
-        
+        if self.gui:
+            self.window_hidden = True
+            self.gui.withdraw()
+            
+            # Create new tray icon thread if needed
+            if not self.icon_thread or not self.icon_thread.is_alive():
+                self.create_tray_icon()
+                self.icon_thread = threading.Thread(target=self.icon.run, daemon=True)
+                self.icon_thread.start()
+
     def exit_application(self):
         """Exit application from tray"""
         if not self._shutting_down:
@@ -113,6 +126,23 @@ class RowanApplication:
         self.logger.info("Starting cleanup process...")
 
         try:
+            # Stop hotkey listener first
+            if self.hotkey:
+                try:
+                    self.hotkey.stop()
+                    self.logger.info("Hotkey listener stopped")
+                except Exception as e:
+                    self.logger.error(f"Error stopping hotkey listener: {e}")
+
+            # Stop tray icon
+            if self.icon:
+                try:
+                    if self.icon_thread and self.icon_thread.is_alive():
+                        self.icon.stop()
+                        self.icon_thread.join(timeout=1.0)
+                except Exception as e:
+                    self.logger.error(f"Error stopping tray icon: {e}")
+
             if self.window_closed:
                 if self.icon:
                     self.icon.stop()
@@ -212,9 +242,19 @@ class RowanApplication:
             # Initialize GUI with reference to assistant after modules are loaded
             self.gui = RowanGUI(rowan_assistant=self.assistant)
             
+            # Setup hotkey before GUI mainloop
+            try:
+                self.hotkey = keyboard.GlobalHotKeys({
+                    '<ctrl>+<alt>+r': lambda: self.gui.after(0, self.toggle_window)
+                })
+                self.hotkey.start()  # Start listening immediately
+                self.logger.info("Global hotkey registered successfully")
+            except Exception as e:
+                self.logger.error(f"Failed to register global hotkey: {e}")
+
             # Add window close protocol
             self.create_tray_icon()
-            self.gui.protocol("WM_DELETE_WINDOW", self.on_window_closing)
+            self.gui.protocol("WM_DELETE_WINDOW", self.hide_window)
             
             return True
             
@@ -247,7 +287,7 @@ class RowanApplication:
                 except Exception as e:
                     self.logger.error(f"Error in main loop: {str(e)}", exc_info=True)
                     return False
-                    
+
             return True
                 
         except Exception as e:
@@ -264,6 +304,19 @@ class RowanApplication:
             self.cleanup()
         finally:
             sys.exit(status_code)
+
+    def toggle_window(self):
+        """Toggle window visibility safely"""
+        if self._shutting_down:
+            return
+            
+        try:
+            if self.window_hidden:
+                self.show_window()
+            else:
+                self.hide_window()
+        except Exception as e:
+            self.logger.error(f"Error toggling window: {e}")
 
 if __name__ == "__main__":
     app = RowanApplication()

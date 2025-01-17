@@ -1,8 +1,10 @@
 import customtkinter as ctk
+import tkinter as tk
 from tkinter import ttk
 import sv_ttk  # For modern Fluent design
 from PIL import Image, ImageTk
 import os
+import sys
 from typing import Optional
 from datetime import datetime
 import threading
@@ -73,6 +75,15 @@ class RowanGUI(ctk.CTk):
             'typing': self._create_typing_animation(),
             'message_appear': self._create_message_animation()
         }
+        
+        # Add keyboard bindings
+        self.bind("<Control-Return>", self._send_message)  # Ctrl+Enter to send
+        self.bind("<Control-h>", lambda e: self.withdraw())  # Ctrl+H to hide
+        self.bind("<Control-q>", lambda e: self.quit())  # Ctrl+Q to quit
+        
+        # Message entry specific bindings
+        self.msg_entry.bind("<Return>", self._send_message)  # Enter to send
+        self.msg_entry.bind("<Control-Return>", self._send_message)  # Also support Ctrl+Enter
 
     def _setup_main_frame(self):
         """Setup main frame with transparency"""
@@ -202,6 +213,14 @@ class RowanGUI(ctk.CTk):
             )
             
         self.send_button.grid(row=0, column=1, padx=(5, 10), pady=10)
+        
+        # Add tooltip to show hotkey
+        tooltip_text = "Press Enter or Ctrl+Enter to send"
+        if sys.platform == "darwin":
+            tooltip_text = "Press Return or Cmd+Return to send"
+        
+        self.msg_entry.bind("<Enter>", lambda e: self._show_tooltip(self.msg_entry, tooltip_text))
+        self.msg_entry.bind("<Leave>", lambda e: self._hide_tooltip())
 
     def _create_typing_animation(self):
         """Creates a simple typing indicator animation"""
@@ -296,3 +315,22 @@ class RowanGUI(ctk.CTk):
             button_hover_color="#1e4fc2"
         )
         return dialog.get_input() == "yes"
+        
+    def _show_tooltip(self, widget, text):
+        """Show tooltip with hotkey hint"""
+        x, y, _, _ = widget.bbox("insert")
+        x += widget.winfo_rootx() + 25
+        y += widget.winfo_rooty() + 20
+
+        self.tooltip = tk.Toplevel(self)
+        self.tooltip.wm_overrideredirect(True)
+        self.tooltip.wm_geometry(f"+{x}+{y}")
+
+        label = tk.Label(self.tooltip, text=text, justify='left',
+                        background="#ffffe0", relief='solid', borderwidth=1)
+        label.pack()
+
+    def _hide_tooltip(self):
+        """Hide the tooltip"""
+        if hasattr(self, 'tooltip'):
+            self.tooltip.destroy()
