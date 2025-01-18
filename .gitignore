@@ -78,6 +78,9 @@ token.pickle
 scripts/*
 !scripts/README.md
 
+# Notes (ignore entire folder)
+notes/*
+
 # Assets (keep specific files)
 assets/*
 !assets/rowan.png
