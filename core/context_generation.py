@@ -8,6 +8,7 @@ import re
 from .personal_memory import PersonalMemorySystem, InteractionContext, PersonalityTrait
 from .context import ContextType, ModuleContextState, Context
 from utils.logger import setup_logger
+from config.settings import Settings
 
 
 class ContextPriority(Enum):
@@ -22,6 +23,7 @@ class ContextGenerator:
         self.max_context_length = 4000
         self.logger = setup_logger(__name__)  # Add logger initialization
         self.context = Context()  # Add Context instance
+        self.settings = Settings()  # Add settings instance
         
         # Enhanced module patterns with command specificity
         self.module_patterns = {
@@ -367,9 +369,10 @@ Recent mood patterns: {json.dumps(emotional_context['mood_pattern'], indent=2)}"
 
 # Update the OllamaInterface to use the new context generator
 class OllamaInterface:
-    def __init__(self, model_name: str = "rowdis", base_url: str = "http://localhost:11434"):
-        self.model_name = model_name
-        self.base_url = base_url
+    def __init__(self, model_name: str = None, base_url: str = None):
+        settings = Settings()
+        self.model_name = model_name or settings.MODEL_CONFIG["name"]
+        self.base_url = base_url or settings.MODEL_CONFIG["base_url"]
         self.memory = PersonalMemorySystem()
         self.context_generator = ContextGenerator(self.memory)
     

@@ -11,11 +11,12 @@ from utils.serialization import DataSerializer
 from core.personal_memory import InteractionSource
 
 class RowanAssistant:
-    def __init__(self, model_name: str = "rowdis"):
+    def __init__(self, model_name: str = None):
         self.logger = setup_logger(__name__)
         self.settings = Settings()
         self.memory = PersonalMemorySystem()  # Will return singleton instance
-        self.llm = OllamaInterface(model_name=model_name, memory_system=self.memory)
+        model = model_name or self.settings.DEFAULT_MODEL
+        self.llm = OllamaInterface(model_name=model, memory_system=self.memory)
         self.context_generator = ContextGenerator(self.memory)
 
     def chat(self, message: str, 

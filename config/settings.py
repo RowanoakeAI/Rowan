@@ -22,3 +22,15 @@ class Settings:
         "spotify"
     #    "task_skill"
     ]
+
+    # Model Settings
+    DEFAULT_MODEL = "Rowan"
+    MODEL_CONFIG = {
+        "name": "Rowan",
+        "base_url": "http://localhost:11434",
+        "parameters": {
+            "temperature": 0.8,
+            "top_p": 0.92,
+            "repeat_penalty": 1.3
+        }
+    }

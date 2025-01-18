@@ -7,6 +7,7 @@ from json import JSONEncoder
 from .personal_memory import PersonalMemorySystem, InteractionContext
 from utils.serialization import DataSerializer
 from utils.json_encoder import RowanJSONEncoder
+from config.settings import Settings
 
 # Add custom JSON encoder
 class MongoJSONEncoder(JSONEncoder):
@@ -16,10 +17,11 @@ class MongoJSONEncoder(JSONEncoder):
         return super().default(obj)
 
 class OllamaInterface:
-    def __init__(self, model_name: str = "rowdis", base_url: str = "http://localhost:11434", 
+    def __init__(self, model_name: str = None, base_url: str = None, 
                  memory_system: Optional[PersonalMemorySystem] = None):
-        self.model_name = model_name
-        self.base_url = base_url
+        settings = Settings()
+        self.model_name = model_name or settings.DEFAULT_MODEL
+        self.base_url = base_url or settings.MODEL_BASE_URL
         self.memory = memory_system or PersonalMemorySystem()  # Use passed instance or get singleton
         
     def generate_context(self, query: str) -> str:
