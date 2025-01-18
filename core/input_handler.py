@@ -89,9 +89,16 @@ class InputHandler:
         return self._preprocess_input(cleaned)
         
     def _determine_module(self, input_text: str) -> str:
-        """Determine which module should handle the input"""
         input_lower = input_text.lower()
         
+        # Check for explicit command syntax first
+        command_match = re.match(r'^[!/.](\w+)', input_lower)
+        if command_match:
+            command = command_match.group(1)
+            if self.module_manager.get_module(command):
+                return command
+
+        # Then check pattern matching
         for module_name, pattern in self.MODULE_PATTERNS.items():
             if re.search(pattern, input_lower):
                 if self.module_manager.get_module(module_name):

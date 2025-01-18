@@ -28,6 +28,12 @@ class InteractionSource(Enum):
     API = "api"
     UNKNOWN = "unknown"
 
+class ReminderStatus(Enum):
+    PENDING = "pending"
+    COMPLETED = "completed"
+    CANCELLED = "cancelled"
+    OVERDUE = "overdue"
+
 class PersonalMemorySystem:
     _instance = None
     
@@ -59,6 +65,7 @@ class PersonalMemorySystem:
                 self.media = self.db.media_preferences
                 self.calendar_events = self.db.calendar_events
                 self.module_states = self.db.module_states  # Add new collection
+                self.reminders = self.db.reminders
                 
                 self._setup_indexes()
                 self._initialize_personality()
@@ -95,6 +102,12 @@ class PersonalMemorySystem:
             self.knowledge.create_index([
                 ("topic", pymongo.ASCENDING),
                 ("importance", pymongo.DESCENDING)
+            ])
+            
+            # Reminders by due date and status
+            self.reminders.create_index([
+                ("due_date", pymongo.ASCENDING),
+                ("status", pymongo.ASCENDING)
             ])
             
             self.logger.info("Successfully created database indexes")
@@ -433,6 +446,116 @@ class PersonalMemorySystem:
             self.logger.error(f"Error resetting module state: {str(e)}")
             return False
 
+    def create_reminder(self, title: str, due_date: datetime, 
+                       description: str = None, priority: int = 1,
+                       recurrence: Dict[str, Any] = None) -> str:
+        """Create a new reminder"""
+        reminder = {
+            "title": title,
+            "description": description,
+            "due_date": due_date,
+            "priority": priority,
+            "status": ReminderStatus.PENDING.value,
+            "created_at": datetime.utcnow(),
+            "recurrence": recurrence,
+            "modified_at": datetime.utcnow()
+        }
+        result = self.reminders.insert_one(reminder)
+        return str(result.inserted_id)
+
+    def get_upcoming_reminders(self, days: int = 7) -> List[Dict[str, Any]]:
+        """Get upcoming reminders"""
+        now = datetime.utcnow()
+        end_date = now + timedelta(days=7)
+        
+        return list(self.reminders.find({
+            "due_date": {"$gte": now, "$lte": end_date},
+            "status": ReminderStatus.PENDING.value
+        }).sort("due_date", pymongo.ASCENDING))
+
+    def update_reminder_status(self, reminder_id: str, 
+                             status: ReminderStatus) -> bool:
+        """Update reminder status"""
+        try:
+            self.reminders.update_one(
+                {"_id": ObjectId(reminder_id)},
+                {
+                    "$set": {
+                        "status": status.value,
+                        "modified_at": datetime.utcnow()
+                    }
+                }
+            )
+            return True
+        except Exception as e:
+            self.logger.error(f"Error updating reminder status: {e}")
+            return False
+
+    def delete_reminder(self, reminder_id: str) -> bool:
+        """Delete a reminder"""
+        try:
+            self.reminders.delete_one({"_id": ObjectId(reminder_id)})
+            return True
+        except Exception as e:
+            self.logger.error(f"Error deleting reminder: {e}")
+            return False
+
+    def update_reminder(self, reminder_id: str, 
+                       updates: Dict[str, Any]) -> bool:
+        """Update reminder details"""
+        try:
+            updates["modified_at"] = datetime.utcnow()
+            self.reminders.update_one(
+                {"_id": ObjectId(reminder_id)},
+                {"$set": updates}
+            )
+            return True
+        except Exception as e:
+            self.logger.error(f"Error updating reminder: {e}")
+            return False
+
+    def get_time_relevant_context(self) -> Dict[str, Any]:
+        """Enhanced time context with more granular patterns"""
+        current_time = datetime.now().replace(microsecond=0)
+        
+        # Enhanced time context
+        time_context = {
+            "time_of_day": "morning" if 5 <= current_time.hour < 12 else
+                          "afternoon" if 12 <= current_time.hour < 17 else
+                          "evening" if 17 <= current_time.hour < 22 else
+                          "night",
+            "day_of_week": current_time.strftime("%A"),
+            "is_weekend": current_time.weekday() >= 5,
+            "part_of_month": "early" if current_time.day <= 10 else
+                            "mid" if current_time.day <= 20 else
+                            "late",
+            "season": self._get_current_season(current_time),
+            "current_time": current_time
+        }
+        return time_context
+
     def close(self):
         """Close the MongoDB connection"""
         self.client.close()
+
+    def analyze_interaction_patterns(self) -> Dict[str, Any]:
+        """Analyze user interaction patterns"""
+        return {
+            "time_patterns": self._analyze_time_patterns(),
+            "context_patterns": self._analyze_context_patterns(),
+            "mood_patterns": self._analyze_mood_patterns(),
+            "module_patterns": self._analyze_module_usage()
+        }
+
+    def _analyze_context_patterns(self) -> List[Dict[str, Any]]:
+        """Analyze common context transitions"""
+        pipeline = [
+            {"$sort": {"timestamp": 1}},
+            {"$group": {
+                "_id": "$context_type",
+                "count": {"$sum": 1},
+                "common_transitions": {"$push": "$next_context"},
+                "average_duration": {"$avg": "$duration"}
+            }}
+        ]
+        return list(self.interactions.aggregate(pipeline))

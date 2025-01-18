@@ -40,8 +40,22 @@ requests>=2.0.0  # For Ollama API calls
 # Utilities
 pathlib>=1.0.1
 typing-extensions>=4.0.0
+setuptools>=42.0.0
 
 # Development dependencies
 black>=22.0.0
 flake8>=4.0.0
 mypy>=0.900
+
+# Testing
+pytest-cov>=2.0.0
+pytest-asyncio>=0.14.0
+
+# Documentation
+sphinx>=4.0.0
+sphinx-rtd-theme>=0.5.0
+
+# Optional integrations
+spotipy>=2.0.0  # For Spotify integration
+beautifulsoup4>=4.9.0  # For web scraping
+pynput>=1.7.0  # For input monitoring

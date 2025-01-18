@@ -45,7 +45,6 @@ class ContextGenerator:
         }
 
     def analyze_query_intent(self, query: str) -> Dict[str, Any]:
-        """Enhanced query intent analysis with specific command detection"""
         intent_scores = {
             "personal": 0.0,
             "task": 0.0,
@@ -53,26 +52,34 @@ class ContextGenerator:
             "emotional": 0.0,
             "preference": 0.0,
             "module": None,
-            "command": None
+            "command": None,
+            "confidence": 0.0  # Add confidence score
         }
         
-        # Check for module-specific commands
-        for module_name, patterns in self.module_patterns.items():
-            # Check command patterns first
-            for cmd, pattern in patterns["commands"].items():
-                if re.search(pattern, query.lower()):
-                    intent_scores["module"] = module_name
-                    intent_scores["command"] = cmd
-                    intent_scores["task"] = 1.0  # Highest priority for specific commands
-                    return intent_scores
-            
-            # Fall back to general patterns
-            if any(re.search(pattern, query.lower()) for pattern in patterns["general"]):
-                intent_scores["module"] = module_name
-                intent_scores["task"] = 0.7
-                break
+        # Normalize input
+        query_lower = query.lower().strip()
+        
+        # Check for explicit command markers
+        command_markers = ["!", "/", ".", "run", "execute", "do"]
+        is_explicit_command = any(query_lower.startswith(m) for m in command_markers)
+        
+        # Apply higher confidence for explicit commands
+        if is_explicit_command:
+            intent_scores["confidence"] = 0.9
 
-        # Continue with other intent analysis...
+        # Enhanced module pattern matching
+        for module_name, patterns in self.module_patterns.items():
+            # Check specific command patterns first
+            for cmd, pattern in patterns["commands"].items():
+                if re.search(pattern, query_lower):
+                    intent_scores.update({
+                        "module": module_name,
+                        "command": cmd,
+                        "task": 1.0,
+                        "confidence": 0.8 + (0.1 if is_explicit_command else 0)
+                    })
+                    return intent_scores
+
         return intent_scores
 
     def get_time_relevant_context(self) -> Dict[str, Any]:
@@ -329,6 +336,34 @@ Recent mood patterns: {json.dumps(emotional_context['mood_pattern'], indent=2)}"
             return "friendly"
         else:
             return "balanced"
+
+    def merge_context_sources(self, query: str) -> Dict[str, Any]:
+        """Merge multiple context sources with weighted relevance"""
+        context_sources = {
+            "temporal": self.get_time_relevant_context(),
+            "emotional": self.get_emotional_context(),
+            "knowledge": self.get_relevant_knowledge(query),
+            "goals": self.get_relevant_goals(query),
+            "preferences": self.get_preference_context(query)
+        }
+        
+        # Weight different context sources
+        weights = {
+            "temporal": 0.2,
+            "emotional": 0.3,
+            "knowledge": 0.2,
+            "goals": 0.2,
+            "preferences": 0.1
+        }
+        
+        return {
+            source: {
+                "data": data,
+                "weight": weights[source],
+                "relevance_score": self._calculate_relevance(data, query)
+            }
+            for source, data in context_sources.items()
+        }
 
 # Update the OllamaInterface to use the new context generator
 class OllamaInterface:

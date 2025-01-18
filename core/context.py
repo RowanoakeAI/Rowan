@@ -5,6 +5,7 @@ from dataclasses import dataclass, asdict
 from enum import Enum
 from utils.serialization import DataSerializer
 from utils.logger import setup_logger
+from core.context_generation import ContextPriority
 
 class ContextType(Enum):
     """Types of context that can be tracked"""
@@ -181,3 +182,96 @@ class Context:
     def get_module_state(self, module_name: str) -> Optional[ModuleContextState]:
         """Get current state of a module"""
         return self.module_states.get(module_name)
+
+    def predict_next_context(self, current_context: ContextType) -> ContextType:
+        """Predict likely next context based on historical patterns"""
+        recent_states = self.get_context_history(limit=10)
+        
+        # Analyze common transitions
+        transitions = {}
+        for i in range(len(recent_states) - 1):
+            current = recent_states[i].type
+            next_state = recent_states[i + 1].type
+            transitions[current] = transitions.get(current, []) + [next_state]
+        
+        # Find most likely next context
+        if current_context in transitions:
+            from collections import Counter
+            counts = Counter(transitions[current_context])
+            return max(counts.items(), key=lambda x: x[1])[0]
+        
+        return current_context
+
+    def add_message_context(self, message: str, source: str, metadata: Optional[Dict[str, Any]] = None) -> None:
+        try:
+            # Add command detection
+            command_data = self._extract_command_data(message)
+            
+            message_data = {
+                "content": message,
+                "source": source,
+                "timestamp": datetime.utcnow(),
+                "metadata": metadata or {},
+                "command_data": command_data,
+                "interaction_type": "command" if command_data else "conversation"
+            }
+
+            # Update both conversation and command contexts
+            self.update_context(
+                context_type=ContextType.CONVERSATION,
+                data=message_data,
+                priority=ContextPriority.HIGH.value
+            )
+
+            if command_data:
+                self.update_context(
+                    context_type=ContextType.COMMAND,
+                    data=command_data,
+                    priority=ContextPriority.CRITICAL.value
+                )
+
+        except Exception as e:
+            self.logger.error(f"Error adding message context: {str(e)}")
+
+    def analyze_message_context(self, message: str) -> Dict[str, Any]:
+        """Analyze message context and related states"""
+        try:
+            # Get recent conversation context
+            recent_context = self.get_context_history(
+                context_type=ContextType.CONVERSATION,
+                limit=5
+            )
+            
+            # Get active module states
+            active_modules = {
+                name: state for name, state in self.module_states.items()
+                if state.is_active
+            }
+            
+            # Predict next likely context
+            next_context = self.predict_next_context(ContextType.CONVERSATION)
+            
+            return {
+                "recent_messages": recent_context,
+                "active_modules": active_modules,
+                "predicted_next": next_context,
+                "current_priority": ContextPriority.HIGH.value
+            }
+        
+        except Exception as e:
+            self.logger.error(f"Error analyzing message context: {str(e)}")
+            return {}
+
+    def track_context_transition(self, from_type: ContextType, to_type: ContextType) -> None:
+        """Track context transitions for better prediction"""
+        transition_data = {
+            "from": from_type.value,
+            "to": to_type.value,
+            "timestamp": datetime.utcnow()
+        }
+        
+        self.update_context(
+            context_type=ContextType.TRANSITION,
+            data=transition_data,
+            priority=ContextPriority.LOW.value
+        )
