@@ -1,24 +1,24 @@
 {
   "total": {
-    "files": 55,
-    "size": 242057,
-    "words": 18741,
-    "chars": 236243,
-    "lines": 6666,
-    "code_lines": 5376,
-    "blank_lines": 994,
-    "comment_lines": 296
+    "files": 58,
+    "size": 316451,
+    "words": 23889,
+    "chars": 308867,
+    "lines": 8539,
+    "code_lines": 6857,
+    "blank_lines": 1264,
+    "comment_lines": 418
   },
   "files": [
     {
       "path": "main.py",
-      "size": 9316,
-      "words": 709,
-      "chars": 9316,
-      "lines": 258,
-      "code_lines": 209,
-      "blank_lines": 35,
-      "comment_lines": 14,
+      "size": 11817,
+      "words": 851,
+      "chars": 11817,
+      "lines": 339,
+      "code_lines": 261,
+      "blank_lines": 50,
+      "comment_lines": 28,
       "extension": ".py"
     },
     {
@@ -63,6 +63,17 @@
       "code_lines": 25,
       "blank_lines": 7,
       "comment_lines": 4,
+      "extension": ".py"
+    },
+    {
+      "path": "config\\email_config.py",
+      "size": 2690,
+      "words": 208,
+      "chars": 2622,
+      "lines": 69,
+      "code_lines": 59,
+      "blank_lines": 8,
+      "comment_lines": 2,
       "extension": ".py"
     },
     {
@@ -111,46 +122,46 @@
     },
     {
       "path": "config\\__init__.py",
-      "size": 147,
-      "words": 16,
-      "chars": 141,
-      "lines": 7,
-      "code_lines": 6,
+      "size": 451,
+      "words": 48,
+      "chars": 439,
+      "lines": 13,
+      "code_lines": 8,
       "blank_lines": 1,
-      "comment_lines": 0,
+      "comment_lines": 4,
       "extension": ".py"
     },
     {
       "path": "core\\context.py",
-      "size": 6706,
-      "words": 520,
-      "chars": 6524,
-      "lines": 183,
-      "code_lines": 143,
-      "blank_lines": 31,
-      "comment_lines": 9,
+      "size": 10379,
+      "words": 765,
+      "chars": 10103,
+      "lines": 277,
+      "code_lines": 214,
+      "blank_lines": 47,
+      "comment_lines": 16,
       "extension": ".py"
     },
     {
       "path": "core\\context_generation.py",
-      "size": 16285,
-      "words": 1214,
-      "chars": 15907,
-      "lines": 379,
-      "code_lines": 279,
-      "blank_lines": 64,
-      "comment_lines": 36,
+      "size": 17445,
+      "words": 1292,
+      "chars": 17032,
+      "lines": 414,
+      "code_lines": 307,
+      "blank_lines": 69,
+      "comment_lines": 38,
       "extension": ".py"
     },
     {
       "path": "core\\input_handler.py",
-      "size": 4823,
-      "words": 346,
-      "chars": 4706,
-      "lines": 118,
-      "code_lines": 88,
-      "blank_lines": 21,
-      "comment_lines": 9,
+      "size": 5078,
+      "words": 364,
+      "chars": 4954,
+      "lines": 125,
+      "code_lines": 92,
+      "blank_lines": 22,
+      "comment_lines": 11,
       "extension": ".py"
     },
     {
@@ -177,13 +188,13 @@
     },
     {
       "path": "core\\module_manager.py",
-      "size": 7689,
-      "words": 557,
-      "chars": 7494,
-      "lines": 196,
-      "code_lines": 149,
-      "blank_lines": 35,
-      "comment_lines": 12,
+      "size": 10892,
+      "words": 770,
+      "chars": 10622,
+      "lines": 271,
+      "code_lines": 204,
+      "blank_lines": 45,
+      "comment_lines": 22,
       "extension": ".py"
     },
     {
@@ -199,13 +210,13 @@
     },
     {
       "path": "core\\personal_memory.py",
-      "size": 16205,
-      "words": 1090,
-      "chars": 15768,
-      "lines": 438,
-      "code_lines": 379,
-      "blank_lines": 48,
-      "comment_lines": 11,
+      "size": 21013,
+      "words": 1424,
+      "chars": 20453,
+      "lines": 561,
+      "code_lines": 488,
+      "blank_lines": 60,
+      "comment_lines": 13,
       "extension": ".py"
     },
     {
@@ -352,6 +363,17 @@
       "extension": ".py"
     },
     {
+      "path": "utils\\gmail_auth.py",
+      "size": 7610,
+      "words": 545,
+      "chars": 7432,
+      "lines": 179,
+      "code_lines": 146,
+      "blank_lines": 29,
+      "comment_lines": 4,
+      "extension": ".py"
+    },
+    {
       "path": "utils\\json_encoder.py",
       "size": 963,
       "words": 102,
@@ -386,24 +408,24 @@
     },
     {
       "path": "utils\\__init__.py",
-      "size": 352,
-      "words": 33,
-      "chars": 338,
-      "lines": 15,
-      "code_lines": 14,
+      "size": 419,
+      "words": 38,
+      "chars": 403,
+      "lines": 17,
+      "code_lines": 16,
       "blank_lines": 1,
       "comment_lines": 0,
       "extension": ".py"
     },
     {
       "path": "modules\\api\\api.py",
-      "size": 12324,
-      "words": 847,
-      "chars": 12004,
-      "lines": 321,
-      "code_lines": 261,
-      "blank_lines": 45,
-      "comment_lines": 15,
+      "size": 11320,
+      "words": 791,
+      "chars": 11019,
+      "lines": 301,
+      "code_lines": 240,
+      "blank_lines": 47,
+      "comment_lines": 14,
       "extension": ".py"
     },
     {
@@ -430,13 +452,13 @@
     },
     {
       "path": "modules\\discord\\discord_module.py",
-      "size": 8805,
-      "words": 702,
-      "chars": 8589,
-      "lines": 209,
-      "code_lines": 156,
-      "blank_lines": 34,
-      "comment_lines": 19,
+      "size": 19488,
+      "words": 1382,
+      "chars": 18996,
+      "lines": 467,
+      "code_lines": 370,
+      "blank_lines": 64,
+      "comment_lines": 33,
       "extension": ".py"
     },
     {
@@ -462,14 +484,25 @@
       "extension": ".py"
     },
     {
+      "path": "modules\\email\\email_module.py",
+      "size": 14039,
+      "words": 1028,
+      "chars": 13685,
+      "lines": 355,
+      "code_lines": 281,
+      "blank_lines": 54,
+      "comment_lines": 20,
+      "extension": ".py"
+    },
+    {
       "path": "modules\\gui\\gui_module.py",
-      "size": 10694,
-      "words": 682,
-      "chars": 10694,
-      "lines": 298,
-      "code_lines": 227,
-      "blank_lines": 49,
-      "comment_lines": 22,
+      "size": 12257,
+      "words": 814,
+      "chars": 12257,
+      "lines": 336,
+      "code_lines": 254,
+      "blank_lines": 57,
+      "comment_lines": 25,
       "extension": ".py"
     },
     {
@@ -485,20 +518,20 @@
     },
     {
       "path": "modules\\notifications\\notification_module.py",
-      "size": 4371,
-      "words": 344,
-      "chars": 4257,
-      "lines": 115,
-      "code_lines": 99,
-      "blank_lines": 14,
-      "comment_lines": 2,
+      "size": 7772,
+      "words": 586,
+      "chars": 7577,
+      "lines": 196,
+      "code_lines": 167,
+      "blank_lines": 23,
+      "comment_lines": 6,
       "extension": ".py"
     },
     {
       "path": "modules\\notifications\\__init__.py",
-      "size": 87,
+      "size": 89,
       "words": 7,
-      "chars": 85,
+      "chars": 87,
       "lines": 3,
       "code_lines": 2,
       "blank_lines": 1,
@@ -507,13 +540,13 @@
     },
     {
       "path": "modules\\skills\\calendar_skill.py",
-      "size": 14312,
-      "words": 1064,
-      "chars": 13978,
-      "lines": 333,
-      "code_lines": 266,
-      "blank_lines": 52,
-      "comment_lines": 15,
+      "size": 33751,
+      "words": 2366,
+      "chars": 32927,
+      "lines": 823,
+      "code_lines": 650,
+      "blank_lines": 123,
+      "comment_lines": 50,
       "extension": ".py"
     },
     {
@@ -616,5 +649,5 @@
       "extension": ".css"
     }
   ],
-  "generated": "2025-01-16T18:03:01.916131"
+  "generated": "2025-01-18T02:56:46.788743"
 }
