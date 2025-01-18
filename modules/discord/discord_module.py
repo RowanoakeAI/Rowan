@@ -235,6 +235,10 @@ class RowanDiscordClient(commands.Bot):
 
         # If in main server and not a command, treat as chat
         if message.guild and message.guild.id == DiscordConfig.MAIN_SERVER_ID:
+            # Add check for ignored channel
+            if message.channel.id == 1329566544958591056:
+                return
+                
             try:
                 # Create context for the message
                 discord_context = {
