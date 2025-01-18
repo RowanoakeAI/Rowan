@@ -76,8 +76,7 @@ class RowanDiscordClient(commands.Bot):
                 response = self.rowan.chat(
                     message,
                     context_type=InteractionContext.CASUAL,
-                    source=InteractionSource.DISCORD,
-                    context=discord_context
+                    source=InteractionSource.DISCORD
                 )
                 
                 await self.chunk_and_send(interaction, response)
@@ -195,12 +194,27 @@ class RowanDiscordClient(commands.Bot):
             )
         ]
 
-        # Add all commands to the bot
+        # Add commands to the command tree
         for cmd in commands:
             self.tree.add_command(cmd)
 
-        # Sync commands with Discord
-        await self.tree.sync()
+        try:
+            # Sync to each guild individually
+            for guild in self.guilds:
+                try:
+                    await self.tree.sync(guild=guild)
+                    self.logger.info(f"Synced commands to guild: {guild.name} ({guild.id})")
+                    await asyncio.sleep(2)  # Rate limiting
+                except discord.HTTPException as e:
+                    self.logger.error(f"Failed to sync commands to guild {guild.name}: {e}")
+                    
+            self.logger.info("Completed syncing commands to all guilds")
+            
+        except Exception as e:
+            self.logger.error(f"Error during guild-specific sync: {e}")
+            # Fallback to global sync
+            await self.tree.sync(guild=None)
+            self.logger.info("Fallback: Synced commands globally")
 
     async def on_ready(self):
         """Handle bot ready event"""
@@ -221,8 +235,39 @@ class RowanDiscordClient(commands.Bot):
 
         # If in main server and not a command, treat as chat
         if message.guild and message.guild.id == DiscordConfig.MAIN_SERVER_ID:
-            ctx = await self.get_context(message)
-            await self.chat(ctx, message=message.content)
+            try:
+                # Create context for the message
+                discord_context = {
+                    "platform": "discord",
+                    "channel": message.channel.name,
+                    "channel_id": message.channel.id,
+                    "author": str(message.author),
+                    "author_id": message.author.id,
+                    "guild": message.guild.name if message.guild else "DM",
+                    "guild_id": message.guild.id if message.guild else None,
+                    "timestamp": datetime.utcnow()
+                }
+
+                # Use the rowan instance to handle the chat
+                response = self.rowan.chat(
+                    message.content,
+                    context_type=InteractionContext.CASUAL,
+                    source=InteractionSource.DISCORD
+                )
+
+                # Send response in chunks if needed
+                if len(response) > DiscordConfig.MAX_RESPONSE_LENGTH:
+                    chunks = [response[i:i + DiscordConfig.MAX_RESPONSE_LENGTH] 
+                             for i in range(0, len(response), DiscordConfig.MAX_RESPONSE_LENGTH)]
+                    for chunk in chunks:
+                        await message.channel.send(chunk)
+                        await asyncio.sleep(0.5)  # Rate limit prevention
+                else:
+                    await message.channel.send(response)
+
+            except Exception as e:
+                self.logger.error(f"Error processing message: {str(e)}")
+                await message.channel.send("I encountered an error processing your message.")
 
     async def status_command(self, interaction: discord.Interaction):
         """Show Rowan's status"""
