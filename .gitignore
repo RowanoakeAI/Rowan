@@ -89,3 +89,4 @@ site/
 
 # Jupyter Notebook
 .ipynb_checkpoints
+*.pickle

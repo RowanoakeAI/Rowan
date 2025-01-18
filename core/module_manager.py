@@ -5,6 +5,8 @@ from pathlib import Path
 from utils.logger import setup_logger
 from config.settings import Settings
 from core.context import Context
+import imaplib
+import smtplib
 
 class ModuleInterface:
     """Base interface that all modules must implement"""
@@ -30,7 +32,9 @@ class ModuleManager:
         "discord": "discord",
         "conversation": "conversation",
         "spotify": "skills.spotify",
-        "api": "api.api"  # Updated path to match actual file structure
+        "api": "api.api",  # Updated path to match actual file structure
+        "email": "email.email_module",  # Add email module path
+        "notifications": "notifications.notification_module"  # Add notifications module path
     }
     
     def __init__(self):
@@ -70,6 +74,7 @@ class ModuleManager:
                 "discord": "DiscordModule",
                 "conversation": "ConversationModule",
                 "spotify": "SpotifySkill",  # Add this mapping
+                "email": "EmailModule"  # Add email mapping
             }
             
             class_name = class_mapping.get(module_name) or f"{module_name.title()}Module"
@@ -86,6 +91,13 @@ class ModuleManager:
             config = self._load_module_config(module_name)
             if base_config:
                 config.update(base_config)
+
+            # Special handling for email module initialization
+            if module_name == "email":
+                # Ensure notification module is available
+                notification_module = self.get_module("notifications")
+                if notification_module:
+                    config["notification_module"] = notification_module
 
             # Initialize with config
             if not module_instance.initialize(config):
@@ -107,6 +119,22 @@ class ModuleManager:
     def _load_module_config(self, module_name: str) -> Dict[str, Any]:
         try:
             config = {}
+            
+            # Special handling for email config
+            if module_name == "email":
+                email_config = {
+                    "imap_server": self.settings.EMAIL_IMAP_SERVER,
+                    "smtp_server": self.settings.EMAIL_SMTP_SERVER,
+                    "email": self.settings.EMAIL_ADDRESS,
+                    "password": self.settings.EMAIL_PASSWORD,
+                    "notification_settings": {
+                        "important_timeout": 15,
+                        "spam_timeout": 5,
+                        "enable_notifications": True
+                    }
+                }
+                config.update(email_config)
+
             config_path = Path(__file__).parent.parent / 'config' / f'{module_name}_config.py'
             
             if config_path.exists():
@@ -179,6 +207,12 @@ class ModuleManager:
         try:
             module = self.get_module(module_name)
             if module:
+                # Special handling for email module shutdown
+                if module_name == "email":
+                    # Ensure notification module is stopped first
+                    if hasattr(module, 'notification_module'):
+                        module.notification_module.stop()
+                
                 module.shutdown()
                 self.modules.pop(module_name)
                 self._module_states.pop(module_name)
@@ -194,3 +228,44 @@ class ModuleManager:
         """Shutdown all modules gracefully"""
         for module_name in list(self.modules.keys()):
             self.shutdown_module(module_name)
+
+class EmailModule(ModuleInterface):
+    def initialize(self, config: Dict[str, Any]) -> bool:
+        """Initialize email connections and notification system"""
+        try:
+            # Setup IMAP for receiving
+            self.imap = imaplib.IMAP4_SSL(config["imap_server"])
+            self.imap.login(config["email"], config["password"])
+            
+            # Setup SMTP for sending
+            self.smtp = smtplib.SMTP_SSL(config["smtp_server"])
+            self.smtp.login(config["email"], config["password"])
+            
+            # Initialize notification module
+            self.notification_module._setup_platform_notifier()
+            self.notification_module.start()
+            
+            self.initialized = True
+            self.logger.info("Email module initialized successfully")
+            return True
+        except Exception as e:
+            self.logger.error(f"Failed to initialize email: {str(e)}")
+            return False
+
+    def shutdown(self) -> None:
+        """Clean shutdown of email module"""
+        try:
+            if self.notification_module:
+                self.notification_module.stop()
+            if self.imap:
+                self.imap.logout()
+            if self.smtp:
+                self.smtp.quit()
+        except Exception as e:
+            self.logger.error(f"Error during email module shutdown: {str(e)}")
+
+module_manager = ModuleManager()
+# Load notification module first
+module_manager.load_module("notifications")
+# Then load other modules that depend on it
+module_manager.load_module("email")

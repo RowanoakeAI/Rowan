@@ -1,3 +1,3 @@
-from .notification_module import NotificationModule
+from .notification_module import NotificationsModule
 
-__all__ = ['NotificationModule']
+__all__ = ['NotificationsModule']
