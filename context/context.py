@@ -2,19 +2,9 @@
 from typing import Dict, Any, Optional, List
 from datetime import datetime
 from dataclasses import dataclass, asdict
-from enum import Enum
 from utils.serialization import DataSerializer
 from utils.logger import setup_logger
-from core.context_generation import ContextPriority
-
-class ContextType(Enum):
-    """Types of context that can be tracked"""
-    CONVERSATION = "conversation"
-    MEMORY = "memory"
-    EMOTIONAL = "emotional"
-    TASK = "task"
-    SYSTEM = "system"
-    MODULE = "module"  # Add module context type
+from .context_types import ContextType, ContextPriority  # Import from shared module
 
 @dataclass
 class ContextState:

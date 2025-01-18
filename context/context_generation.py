@@ -1,21 +1,15 @@
 # core/context_generator.py
 from typing import Dict, Any, List, Optional
 from datetime import datetime, timedelta
-import json
 from enum import Enum
-import numpy as np
+import json
 import re
-from .personal_memory import PersonalMemorySystem, InteractionContext, PersonalityTrait
-from .context import ContextType, ModuleContextState, Context
+import numpy as np
+from .context_types import ContextType, ContextPriority  # Import from shared module
+from core.personal_memory import PersonalMemorySystem, InteractionContext, PersonalityTrait
+from .context import ModuleContextState, Context
 from utils.logger import setup_logger
 from config.settings import Settings
-
-
-class ContextPriority(Enum):
-    CRITICAL = 4
-    HIGH = 3
-    MEDIUM = 2
-    LOW = 1
 
 class ContextGenerator:
     def __init__(self, memory: PersonalMemorySystem):
