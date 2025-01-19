@@ -14,13 +14,15 @@ class EmailConfig:
         'https://www.googleapis.com/auth/gmail.readonly'
     ]
     
+    # Update attribute names to match expected Settings keys
+    EMAIL_IMAP_SERVER: str = "imap.gmail.com"  # Changed from imap_server
+    EMAIL_SMTP_SERVER: str = "smtp.gmail.com"   # Changed from smtp_server
+    EMAIL_SMTP_PORT: int = 465                  # Changed from smtp_port
+    
     email: str = os.getenv('EMAIL', '')
     client_id: str = ''
     client_secret: str = ''
     credentials_file: str = os.path.join(os.path.dirname(__file__), "..", "credentials.json")
-    imap_server: str = "imap.gmail.com"
-    smtp_server: str = "smtp.gmail.com" 
-    smtp_port: int = 465
     max_emails_to_fetch: int = 10
     cache_duration: int = 300  # 5 minutes
 
@@ -35,9 +37,9 @@ class EmailConfig:
             raise ValueError("Invalid email format")
         if not self.client_id or not self.client_secret:
             raise ValueError("Missing OAuth2 credentials")
-        if not self.smtp_port or not isinstance(self.smtp_port, int):
+        if not self.EMAIL_SMTP_PORT or not isinstance(self.EMAIL_SMTP_PORT, int):
             raise ValueError("Invalid SMTP port")
-        if not self.imap_server:
+        if not self.EMAIL_IMAP_SERVER:
             raise ValueError("Missing IMAP server configuration")
 
     @staticmethod

@@ -3,7 +3,7 @@ from datetime import datetime
 import json
 from core.personal_memory import PersonalMemorySystem, InteractionContext, PersonalityTrait
 from core.llm_interface import OllamaInterface
-from core.context_generation import ContextGenerator
+from context.context_generation import ContextGenerator
 from utils.logger import setup_logger
 from config.settings import Settings
 from utils.json_encoder import RowanJSONEncoder

@@ -1,4 +1,5 @@
 import os
+from .email_config import EmailConfig
 
 # config/settings.py
 class Settings:
@@ -16,15 +17,17 @@ class Settings:
     DEFAULT_MODULE = "conversation"
     ENABLED_MODULES = [
         "conversation",
-        "discord"
-    #    "voice",
+        "discord",
+        #"voice",
         "calendar_skill",
         "spotify"
-    #    "task_skill"
+        #"task_skill"
     ]
 
     # Model Settings
     DEFAULT_MODEL = "Rowan"
+    MODEL_NAME = DEFAULT_MODEL  #  maintain compatibility
+    MODEL_BASE_URL = "http://localhost:11434"
     MODEL_CONFIG = {
         "name": "Rowan",
         "base_url": "http://localhost:11434",
@@ -34,3 +37,9 @@ class Settings:
             "repeat_penalty": 1.3
         }
     }
+
+    # Email settings
+    EMAIL_IMAP_SERVER = EmailConfig.EMAIL_IMAP_SERVER
+    EMAIL_SMTP_SERVER = EmailConfig.EMAIL_SMTP_SERVER
+    EMAIL_SMTP_PORT = EmailConfig.EMAIL_SMTP_PORT
+    EMAIL_ADDRESS = EmailConfig.email

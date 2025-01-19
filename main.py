@@ -9,7 +9,7 @@ import asyncio
 from pathlib import Path
 import threading
 from queue import Queue, Empty
-from typing import List, Optional
+from typing import List, Optional, Dict, Any
 import time
 from contextlib import contextmanager
 import logging
@@ -27,6 +27,7 @@ from core.module_manager import ModuleManager
 from modules.gui.gui_module import RowanGUI
 from config.discord_config import DiscordConfig
 from config.api_config import APIConfig
+from config.settings import Settings
 
 class RowanApplication:
     # Exit status constants
@@ -35,7 +36,9 @@ class RowanApplication:
     EXIT_RUNTIME_ERROR = 2
     EXIT_KEYBOARD_INTERRUPT = 3
 
-    def __init__(self):
+    def __init__(self, rowan_assistant: Optional['RowanAssistant'] = None):
+        super().__init__()
+        
         # Core components
         self.assistant = None
         self.gui = None
@@ -63,15 +66,26 @@ class RowanApplication:
         atexit.register(self.cleanup)
 
         self.hotkey = None
+        
+        # Add global hotkey listener with correct method references
+        self.hotkey_listener = keyboard.GlobalHotKeys({
+            '<ctrl>+<alt>+r': self.show_window,  # Show window
+            '<ctrl>+<alt>+h': self.hide_window   # Hide window
+        })
+        try:
+            self.hotkey_listener.start()
+        except Exception as e:
+            self.logger.error(f"Failed to start hotkey listener: {e}")
 
     def initialize(self) -> bool:
+        """Initialize the Rowan application"""
         try:
             # Initialize event loop
             loop = asyncio.new_event_loop()
             asyncio.set_event_loop(loop)
             
             # Initialize core components
-            self.assistant = RowanAssistant(model_name="rowdis")
+            self.assistant = RowanAssistant(model_name=Settings.MODEL_NAME)
             self.module_manager = ModuleManager()
             
             # Base configuration for modules
@@ -81,36 +95,9 @@ class RowanApplication:
                 "debug": True
             }
             
-            # Add notifications to core modules to load
-            modules_to_load = [
-                ("conversation", {}),
-                ("calendar_skill", {}),
-                ("notifications", {}),  # Add notifications module
-                ("discord", {
-                    "token": DiscordConfig.DISCORD_TOKEN,
-                    "rowan": self.assistant,
-                    "memory": self.assistant.memory
-                }),
-                ("api", {
-                    "api_port": APIConfig.API_PORT,
-                    "rowan": self.assistant
-                })
-            ]
+            # Initialize modules in correct order
+            self.initialize_modules()
             
-            # Load modules
-            for module_name, module_config in modules_to_load:
-                config = base_config.copy()
-                config.update(module_config)
-                try:
-                    if module_name == "api":
-                        loop.run_until_complete(self._async_load_module(module_name, config))
-                    else:
-                        if not self.module_manager.load_module(module_name, config):
-                            raise Exception(f"Module initialization failed: {module_name}")
-                except Exception as e:
-                    self.logger.error(f"Error loading module {module_name}: {str(e)}")
-                    raise
-
             # Initialize GUI but keep it hidden
             self.gui = RowanGUI(rowan_assistant=self.assistant)
             self.window_hidden = True
@@ -130,7 +117,7 @@ class RowanApplication:
                 )
 
             return True
-            
+
         except Exception as e:
             self.logger.error(f"Failed to initialize Rowan: {str(e)}")
             return False
@@ -197,36 +184,66 @@ class RowanApplication:
         return True
 
     def create_tray_icon(self):
+        """Create and start the system tray icon"""
+        if self.icon or self.icon_thread and self.icon_thread.is_alive():
+            return
+            
         icon_path = Path(__file__).parent / "assets" / "rowan.png"
-        self.icon_image = Image.open(icon_path)
-        menu = (
-            pystray.MenuItem("Show", self.show_window),
-            pystray.MenuItem("Hide", self.hide_window),
-            pystray.MenuItem("Exit", self.exit_application)
-        )
-        self.icon = pystray.Icon("Rowan", self.icon_image, "Rowan Assistant", menu)
+        if not icon_path.exists():
+            self.logger.error(f"Icon file not found at {icon_path}")
+            return
+            
+        try:
+            self.icon_image = Image.open(icon_path)
+            menu = (
+                pystray.MenuItem("Show", self.show_window),
+                pystray.MenuItem("Hide", self.hide_window),
+                pystray.MenuItem("Exit", self.exit_application)
+            )
+            self.icon = pystray.Icon("Rowan", self.icon_image, "Rowan Assistant", menu)
+            
+            # Start icon in a daemon thread
+            self.icon_thread = threading.Thread(target=self.icon.run, daemon=True)
+            self.icon_thread.start()
+        except Exception as e:
+            self.logger.error(f"Failed to create tray icon: {e}")
 
     def show_window(self):
-        if self.icon and self.icon_thread and self.icon_thread.is_alive():
-            self.icon.stop()
-            self.icon_thread.join()
-            self.icon_thread = None
+        """Show the main window and handle tray icon cleanup"""
+        if not self.gui:
+            return
             
-        if self.gui:
-            self.window_hidden = False
-            self.gui.deiconify()
-            self.gui.lift()
-            self.gui.focus_force()
+        def stop_icon():
+            if self.icon:
+                try:
+                    self.icon.stop()
+                    self.icon = None
+                except Exception as e:
+                    self.logger.error(f"Error stopping tray icon: {e}")
+        
+        # Stop icon in a separate thread to avoid deadlock
+        if self.icon and self.icon_thread and self.icon_thread.is_alive():
+            stop_thread = threading.Thread(target=stop_icon, daemon=True)
+            stop_thread.start()
+            # Wait briefly for icon to stop
+            stop_thread.join(timeout=0.5)
+        
+        self.window_hidden = False
+        self.gui.deiconify()
+        self.gui.lift()
+        self.gui.focus_force()
 
     def hide_window(self):
-        if self.gui:
-            self.window_hidden = True
-            self.gui.withdraw()
+        """Hide the main window and create tray icon"""
+        if not self.gui:
+            return
             
-            if not self.icon_thread or not self.icon_thread.is_alive():
-                self.create_tray_icon()
-                self.icon_thread = threading.Thread(target=self.icon.run, daemon=True)
-                self.icon_thread.start()
+        self.window_hidden = True
+        self.gui.withdraw()
+        
+        # Only create new tray icon if needed
+        if not self.icon_thread or not self.icon_thread.is_alive():
+            self.create_tray_icon()
 
     def toggle_window(self):
         if self._shutting_down:
@@ -244,15 +261,18 @@ class RowanApplication:
         """Safely exit the application from the system tray"""
         if not self._shutting_down:
             try:
+                self._shutting_down = True
                 self.window_closed = True
-                # Stop processing any new events
-                self.should_run = False
                 
-                # Hide window first to prevent UI issues
+                # Stop hotkey listener if it exists
+                if hasattr(self.gui, 'hotkey_listener'):
+                    self.gui.hotkey_listener.stop()
+                
+                # Hide window first
                 if self.gui and not self.window_hidden:
                     self.gui.withdraw()
                 
-                # Stop icon first to prevent callback issues
+                # Stop tray icon
                 if self.icon:
                     try:
                         self.icon.stop()
@@ -261,16 +281,10 @@ class RowanApplication:
                     except Exception as e:
                         self.logger.error(f"Error stopping tray icon: {e}")
                 
-                # Run cleanup operations
+                # Cleanup and exit
                 self.cleanup()
+                sys.exit(self.EXIT_SUCCESS)
                 
-                # Exit main thread last
-                self.logger.info("Exiting application...")
-                if self.gui and self.gui.winfo_exists():
-                    self.gui.after(100, lambda: self.gui.quit())
-                else:
-                    sys.exit(self.EXIT_SUCCESS)
-                    
             except Exception as e:
                 self.logger.error(f"Error during exit: {e}")
                 sys.exit(self.EXIT_RUNTIME_ERROR)
@@ -320,6 +334,53 @@ class RowanApplication:
             # Use os._exit to ensure clean exit
             import os
             os._exit(status_code)
+
+    def initialize_calendar(self, config: Dict[str, Any]) -> bool:
+        """Initialize calendar module specifically"""
+        try:
+            if not config:
+                self.logger.error("No configuration provided")
+                return False
+                
+            self.notification_module = config.get('modules', {}).get('notifications')
+            if not self.notification_module:
+                self.logger.warning("No notification module provided - notifications disabled")
+            
+            self._authenticate()
+            self.initialized = True
+            self.logger.info("Calendar module initialized successfully")
+            
+            return True
+            
+        except Exception as e:
+            self.logger.error(f"Failed to initialize calendar: {str(e)}")
+            return False
+
+    def initialize_modules(self) -> None:
+        """Initialize all modules in correct order"""
+        try:
+            # First initialize core modules
+            self.notification_module = self.modules.get('notifications')
+            if self.notification_module:
+                self.notification_module.initialize({})
+
+            # Then initialize skills with dependencies
+            calendar_module = self.modules.get('calendar_skill')
+            if (calendar_module):
+                calendar_module.initialize({
+                    'modules': {
+                        'notifications': self.notification_module
+                    }
+                })
+                
+            # Initialize remaining modules
+            for module_name, module in self.modules.items():
+                if module_name not in ['notifications', 'calendar_skill']:
+                    module.initialize({})
+                    
+        except Exception as e:
+            self.logger.error(f"Failed to initialize modules: {e}")
+            raise
 
 if __name__ == "__main__":
     app = RowanApplication()

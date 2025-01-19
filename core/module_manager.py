@@ -4,7 +4,7 @@ import inspect
 from pathlib import Path
 from utils.logger import setup_logger
 from config.settings import Settings
-from core.context import Context
+from context.context import Context
 import imaplib
 import smtplib
 

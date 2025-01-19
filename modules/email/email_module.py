@@ -10,7 +10,7 @@ from email.header import decode_header
 import re
 from typing import Dict, Any, Tuple, List
 from datetime import datetime
-from modules.notifications.notification_module import NotificationModule
+from modules.notifications.notification_module import NotificationsModule  # Fixed: NotificationModule -> NotificationsModule
 import logging
 from threading import Timer
 from typing import Optional
@@ -50,7 +50,7 @@ class EmailModule(ModuleInterface):
         self.imap = None
         self.smtp = None
         self.initialized = False
-        self.notification_module = NotificationModule()
+        self.notification_module = None
         self.command_handlers = {
             "send": self._handle_send,
             "check": self._handle_check,
@@ -61,7 +61,7 @@ class EmailModule(ModuleInterface):
         self.check_interval = 300  # 5 minutes default
 
     def initialize(self, config: Dict[str, Any]) -> bool:
-        """Initialize email connections"""
+        """Initialize email connections and notification system"""
         try:
             # Setup IMAP for receiving
             self.imap = imaplib.IMAP4_SSL(config["imap_server"])
@@ -70,6 +70,9 @@ class EmailModule(ModuleInterface):
             # Setup SMTP for sending
             self.smtp = smtplib.SMTP_SSL(config["smtp_server"])
             self.smtp.login(config["email"], config["password"])
+            
+            # Initialize notification module reference
+            self.notification_module = config.get("notification_module")
             
             self.initialized = True
             self.logger.info("Email module initialized successfully")
