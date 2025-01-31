@@ -14,6 +14,7 @@ from modules.notifications.notification_module import NotificationsModule  # Fix
 import logging
 from threading import Timer
 from typing import Optional
+from config.email_config import EmailConfig
 
 class EmailModule(ModuleInterface):
     """Email integration module for Rowan"""
@@ -60,13 +61,25 @@ class EmailModule(ModuleInterface):
         self.check_timer: Optional[Timer] = None
         self.check_interval = 300  # 5 minutes default
 
-    def initialize(self, config: Dict[str, Any]) -> bool:
-        """Initialize email connections using OAuth2"""
+    def initialize(self, config: EmailConfig) -> bool:
+        """Initialize email connections using OAuth2
+        
+        Args:
+            config: EmailConfig instance with OAuth2 settings
+        """
         try:
-            credentials = config.get_credentials()
+            if not isinstance(config, EmailConfig):
+                raise TypeError("Expected EmailConfig instance")
+                
+            # Get OAuth credentials
+            auth = config.initialize_auth()
+            if not auth:
+                raise ValueError("Failed to initialize auth handler")
+                
+            credentials = auth.get_gmail_service()
             if not credentials:
                 raise ValueError("Failed to get Gmail credentials")
-                
+
             # Setup IMAP with OAuth2
             self.imap = imaplib.IMAP4_SSL(config.EMAIL_IMAP_SERVER)
             self.imap.authenticate('XOAUTH2', lambda x: credentials.token)

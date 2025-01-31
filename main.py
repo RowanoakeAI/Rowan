@@ -38,13 +38,14 @@ class RowanApplication:
     EXIT_KEYBOARD_INTERRUPT = 3
 
     def __init__(self, rowan_assistant: Optional['RowanAssistant'] = None):
-        super().__init__()
+        # Remove incorrect super() call since we don't inherit
+        self.logger = logging.getLogger(__name__)
         
         # Core components
-        self.assistant = None
+        self.assistant = rowan_assistant
         self.gui = None
-        self.module_manager = None
-        self.modules = ModuleManager()  # Add modules dictionary
+        self.module_manager = ModuleManager() # Single instance
+        self.settings = Settings()
         
         # Threading and events
         self.event_queue = Queue()
@@ -59,23 +60,18 @@ class RowanApplication:
         self._icon_ready = threading.Event()
         self._shutting_down = False
         
-        # Setup logging
-        self.logger = logging.getLogger(__name__)
-        
         # Initialize signal handlers
         signal.signal(signal.SIGINT, self._signal_handler)
         signal.signal(signal.SIGTERM, self._signal_handler)
         atexit.register(self.cleanup)
 
-        self.hotkey = None
-        
-        # Add global hotkey listener with correct method references
-        self.hotkey_listener = keyboard.GlobalHotKeys({
-            '<ctrl>+<alt>+r': self.show_window,  # Show window
-            '<ctrl>+<alt>+h': self.hide_window   # Hide window
+        # Initialize hotkey listener
+        self.hotkey = keyboard.GlobalHotKeys({
+            '<ctrl>+<alt>+r': self.show_window,
+            '<ctrl>+<alt>+h': self.hide_window
         })
         try:
-            self.hotkey_listener.start()
+            self.hotkey.start()
         except Exception as e:
             self.logger.error(f"Failed to start hotkey listener: {e}")
 
@@ -88,27 +84,24 @@ class RowanApplication:
             loop = asyncio.new_event_loop()
             asyncio.set_event_loop(loop)
             
-            # Initialize core components
-            self.assistant = RowanAssistant(model_name=Settings.MODEL_NAME)
-            self.module_manager = ModuleManager()
-            
-            # Load available modules
-            self.modules = self.module_manager.modules
+            # Initialize assistant if not provided
+            if not self.assistant:
+                self.assistant = RowanAssistant(model_name=self.settings.MODEL_NAME)
             
             # Base configuration for modules
             base_config = {
                 "rowan": self.assistant,
                 "memory": self.assistant.memory,
-                "debug": True
+                "debug": self.settings.DEBUG
             }
             
+            # Initialize core modules first
             try:
-                # Initialize modules in correct order
-                self.initialize_modules()
+                self.module_manager._initialize_core_modules()
             except Exception as e:
-                self.logger.error(f"Failed to initialize modules: {e}")
+                self.logger.error(f"Failed to initialize core modules: {e}")
                 return False
-            
+
             # Initialize GUI but keep it hidden
             self.gui = RowanGUI(rowan_assistant=self.assistant)
             self.window_hidden = True
@@ -116,18 +109,8 @@ class RowanApplication:
             
             # Create tray icon
             self.create_tray_icon()
+            
             self.gui.protocol("WM_DELETE_WINDOW", self.hide_window)
-
-            # Send startup notification if notifications module is available
-            if "notifications" in self.modules:
-                try:
-                    self.modules["notifications"].send_notification(
-                        "Rowan Assistant",
-                        "Rowan has started and is running in the background",
-                        timeout=5
-                    )
-                except Exception as e:
-                    self.logger.warning(f"Failed to send startup notification: {e}")
 
             return True
 
@@ -404,14 +387,12 @@ if __name__ == "__main__":
     status_code = app.EXIT_SUCCESS
     
     try:
-        success = app.start()
+        success = asyncio.run(app.start())
         if not success:
             status_code = app.EXIT_INIT_FAILURE
     except KeyboardInterrupt:
         app.logger.info("Received keyboard interrupt")
         status_code = app.EXIT_KEYBOARD_INTERRUPT
-    except Exception as e:
-        app.logger.error(f"Unhandled error: {str(e)}", exc_info=True)
-        status_code = app.EXIT_RUNTIME_ERROR
     finally:
-        app.shutdown(status_code)
+        app.cleanup()
+        sys.exit(status_code)

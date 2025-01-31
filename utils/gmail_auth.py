@@ -90,9 +90,18 @@ class GmailAuthHandler:
         try:
             if creds and creds.expired and creds.refresh_token:
                 self.logger.info("Token expired, attempting refresh...")
-                creds = self._refresh_token(creds)
-                self.logger.info("Token refresh successful")
-            else:
+                try:
+                    creds = self._refresh_token(creds)
+                    self.logger.info("Token refresh successful")
+                except Exception as refresh_error:
+                    self.logger.warning(f"Token refresh failed: {str(refresh_error)}")
+                    self.logger.info("Falling back to new authentication")
+                    # Clear invalid token
+                    if self._token_path.exists():
+                        self._token_path.unlink()
+                    creds = None
+
+            if not creds:
                 self.logger.info("Getting new credentials...")
                 flow = InstalledAppFlow.from_client_secrets_file(
                     str(self._secrets_path), self.scopes)
@@ -101,6 +110,7 @@ class GmailAuthHandler:
             # Save the credentials
             self._save_credentials(creds)
             return creds
+
         except Exception as e:
             self.logger.error(f"Failed to handle invalid credentials: {str(e)}")
             return None
@@ -113,11 +123,17 @@ class GmailAuthHandler:
             pickle.dump(creds, token)
         self.logger.info(f"Token saved successfully at {self._token_path}")
 
-    @retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=4, max=10))
+    @retry(stop=stop_after_attempt(3), 
+           wait=wait_exponential(multiplier=1, min=4, max=10),
+           reraise=True)
     def _refresh_token(self, creds: Credentials) -> Credentials:
-        """Refresh the access token"""
-        creds.refresh(Request())
-        return creds
+        """Refresh the access token with enhanced error handling"""
+        try:
+            creds.refresh(Request())
+            return creds
+        except Exception as e:
+            self.logger.error(f"Token refresh attempt failed: {str(e)}")
+            raise
 
 auth_handler = GmailAuthHandler()
 auth_handler.initialize_auth()
