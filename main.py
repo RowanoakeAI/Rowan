@@ -28,6 +28,7 @@ from modules.gui.gui_module import RowanGUI
 from config.discord_config import DiscordConfig
 from config.api_config import APIConfig
 from config.settings import Settings
+from core.heartbeat_manager import HeartbeatManager
 
 class RowanApplication:
     # Exit status constants
@@ -43,7 +44,7 @@ class RowanApplication:
         self.assistant = None
         self.gui = None
         self.module_manager = None
-        self.modules = {}  # Add modules dictionary
+        self.modules = ModuleManager()  # Add modules dictionary
         
         # Threading and events
         self.event_queue = Queue()
@@ -77,6 +78,8 @@ class RowanApplication:
             self.hotkey_listener.start()
         except Exception as e:
             self.logger.error(f"Failed to start hotkey listener: {e}")
+
+        self.heartbeat_manager = HeartbeatManager()
 
     def initialize(self) -> bool:
         """Initialize the Rowan application"""
@@ -304,8 +307,12 @@ class RowanApplication:
             self.logger.info(f"Received signal {signum}, initiating shutdown...")
             self.exit_application()
 
-    def start(self):
+    async def start(self):
+        """Start the Rowan application"""
         try:
+            from config import heartbeats_config
+            # Start main heartbeat
+            self.modules.heartbeat_manager.start_heartbeat("Main", heartbeats_config.Main)
             if not self.initialize():
                 self.logger.error("Failed to start Rowan due to initialization error")
                 return False
@@ -373,7 +380,7 @@ class RowanApplication:
             self.notification_module = self.modules.get('notifications')
             if self.notification_module:
                 self.notification_module.initialize({})
-
+                
             # Then initialize skills with dependencies
             calendar_module = self.modules.get('calendar_skill')
             if (calendar_module):

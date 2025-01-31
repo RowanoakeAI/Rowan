@@ -7,6 +7,8 @@ from config.settings import Settings
 from context.context import Context
 import imaplib
 import smtplib
+from .heartbeat_manager import HeartbeatManager
+from config import heartbeats_config
 
 class ModuleInterface:
     """Base interface that all modules must implement"""
@@ -44,6 +46,7 @@ class ModuleManager:
         self.module_configs: Dict[str, Dict[str, Any]] = {}
         self._module_states: Dict[str, bool] = {}
         self.context = Context()
+        self.heartbeat_manager = HeartbeatManager()
 
     def load_module(self, module_name: str, base_config: Dict[str, Any] = None) -> bool:
         """Load a module with provided base configuration"""
@@ -108,6 +111,11 @@ class ModuleManager:
             self.module_configs[module_name] = config
             self._module_states[module_name] = True
             
+            # Start heartbeat if URL exists
+            heartbeat_url = getattr(heartbeats_config, module_name.upper(), None)
+            if heartbeat_url:
+                self.heartbeat_manager.start_heartbeat(module_name, heartbeat_url)
+
             self.logger.info(f"Successfully loaded module: {module_name}")
             return True
 
@@ -217,6 +225,9 @@ class ModuleManager:
                 self.modules.pop(module_name)
                 self._module_states.pop(module_name)
                 self.logger.info(f"Successfully shut down module: {module_name}")
+                
+                # Stop heartbeat
+                self.heartbeat_manager.stop_heartbeat(module_name)
                 return True
             return False
             
@@ -226,6 +237,8 @@ class ModuleManager:
             
     def shutdown_all(self) -> None:
         """Shutdown all modules gracefully"""
+        # Stop heartbeats first
+        self.heartbeat_manager.stop_all()
         for module_name in list(self.modules.keys()):
             self.shutdown_module(module_name)
 

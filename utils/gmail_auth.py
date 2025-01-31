@@ -7,7 +7,12 @@ from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
 from tenacity import retry, stop_after_attempt, wait_exponential
 from utils.logger import setup_logger
-from config.constants import GMAIL_SCOPES
+
+# Move scopes directly here to break circular import
+GMAIL_SCOPES = [
+    'https://www.googleapis.com/auth/gmail.send',
+    'https://www.googleapis.com/auth/gmail.readonly'
+]
 
 class GmailAuthError(Exception):
     """Custom exception for Gmail authentication errors"""
