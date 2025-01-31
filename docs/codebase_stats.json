@@ -1,24 +1,24 @@
 {
   "total": {
-    "files": 60,
-    "size": 320329,
-    "words": 24221,
-    "chars": 312705,
-    "lines": 8642,
-    "code_lines": 6930,
-    "blank_lines": 1284,
-    "comment_lines": 428
+    "files": 63,
+    "size": 319754,
+    "words": 24224,
+    "chars": 312131,
+    "lines": 8654,
+    "code_lines": 6934,
+    "blank_lines": 1288,
+    "comment_lines": 432
   },
   "files": [
     {
       "path": "main.py",
-      "size": 14002,
-      "words": 1041,
-      "chars": 14002,
-      "lines": 400,
-      "code_lines": 300,
-      "blank_lines": 66,
-      "comment_lines": 34,
+      "size": 14480,
+      "words": 1082,
+      "chars": 14480,
+      "lines": 410,
+      "code_lines": 308,
+      "blank_lines": 67,
+      "comment_lines": 35,
       "extension": ".py"
     },
     {
@@ -55,6 +55,17 @@
       "extension": ".py"
     },
     {
+      "path": "config\\constants.py",
+      "size": 352,
+      "words": 26,
+      "chars": 339,
+      "lines": 14,
+      "code_lines": 12,
+      "blank_lines": 2,
+      "comment_lines": 0,
+      "extension": ".py"
+    },
+    {
       "path": "config\\discord_config.py",
       "size": 1100,
       "words": 117,
@@ -67,13 +78,35 @@
     },
     {
       "path": "config\\email_config.py",
-      "size": 2892,
-      "words": 229,
-      "chars": 2822,
-      "lines": 71,
-      "code_lines": 59,
-      "blank_lines": 9,
-      "comment_lines": 3,
+      "size": 3434,
+      "words": 265,
+      "chars": 3345,
+      "lines": 90,
+      "code_lines": 65,
+      "blank_lines": 18,
+      "comment_lines": 7,
+      "extension": ".py"
+    },
+    {
+      "path": "config\\email_constants.py",
+      "size": 346,
+      "words": 25,
+      "chars": 333,
+      "lines": 14,
+      "code_lines": 12,
+      "blank_lines": 2,
+      "comment_lines": 0,
+      "extension": ".py"
+    },
+    {
+      "path": "config\\logging_config.py",
+      "size": 246,
+      "words": 22,
+      "chars": 238,
+      "lines": 9,
+      "code_lines": 7,
+      "blank_lines": 1,
+      "comment_lines": 1,
       "extension": ".py"
     },
     {
@@ -89,13 +122,13 @@
     },
     {
       "path": "config\\settings.py",
-      "size": 1209,
-      "words": 99,
-      "chars": 1165,
-      "lines": 45,
+      "size": 1264,
+      "words": 107,
+      "chars": 1219,
+      "lines": 46,
       "code_lines": 33,
       "blank_lines": 5,
-      "comment_lines": 7,
+      "comment_lines": 8,
       "extension": ".py"
     },
     {
@@ -386,13 +419,13 @@
     },
     {
       "path": "utils\\gmail_auth.py",
-      "size": 7610,
-      "words": 545,
-      "chars": 7432,
-      "lines": 179,
-      "code_lines": 146,
-      "blank_lines": 29,
-      "comment_lines": 4,
+      "size": 4810,
+      "words": 359,
+      "chars": 4693,
+      "lines": 118,
+      "code_lines": 99,
+      "blank_lines": 17,
+      "comment_lines": 2,
       "extension": ".py"
     },
     {
@@ -408,12 +441,12 @@
     },
     {
       "path": "utils\\logger.py",
-      "size": 4108,
-      "words": 322,
-      "chars": 3983,
-      "lines": 126,
-      "code_lines": 98,
-      "blank_lines": 20,
+      "size": 4139,
+      "words": 331,
+      "chars": 4011,
+      "lines": 129,
+      "code_lines": 100,
+      "blank_lines": 21,
       "comment_lines": 8,
       "extension": ".py"
     },
@@ -507,13 +540,13 @@
     },
     {
       "path": "modules\\email\\email_module.py",
-      "size": 14244,
-      "words": 1044,
-      "chars": 13887,
-      "lines": 358,
-      "code_lines": 282,
+      "size": 14419,
+      "words": 1066,
+      "chars": 14059,
+      "lines": 361,
+      "code_lines": 286,
       "blank_lines": 55,
-      "comment_lines": 21,
+      "comment_lines": 20,
       "extension": ".py"
     },
     {
@@ -671,5 +704,5 @@
       "extension": ".css"
     }
   ],
-  "generated": "2025-01-19T01:21:14.316279"
+  "generated": "2025-01-21T18:56:11.340304"
 }

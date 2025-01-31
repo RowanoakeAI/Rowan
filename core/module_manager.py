@@ -231,23 +231,28 @@ class ModuleManager:
 
 class EmailModule(ModuleInterface):
     def initialize(self, config: Dict[str, Any]) -> bool:
-        """Initialize email connections and notification system"""
+        """Initialize email connections using OAuth2"""
         try:
-            # Setup IMAP for receiving
-            self.imap = imaplib.IMAP4_SSL(config["imap_server"])
-            self.imap.login(config["email"], config["password"])
+            # Create and initialize auth handler
+            auth_handler = config.initialize_auth()
+            credentials = auth_handler.get_gmail_service()
             
-            # Setup SMTP for sending
-            self.smtp = smtplib.SMTP_SSL(config["smtp_server"])
-            self.smtp.login(config["email"], config["password"])
+            if not credentials:
+                raise ValueError("Failed to get Gmail credentials")
+                
+            # Setup IMAP with OAuth2
+            self.imap = imaplib.IMAP4_SSL(config.EMAIL_IMAP_SERVER)
+            self.imap.authenticate('XOAUTH2', lambda x: credentials.token)
             
-            # Initialize notification module
-            self.notification_module._setup_platform_notifier()
-            self.notification_module.start()
+            # Setup SMTP with OAuth2
+            self.smtp = smtplib.SMTP_SSL(config.EMAIL_SMTP_SERVER)
+            auth_string = self._build_oauth_string(config.email, credentials.token)
+            self.smtp.auth('XOAUTH2', lambda: auth_string)
             
             self.initialized = True
-            self.logger.info("Email module initialized successfully")
+            self.logger.info("Email module initialized successfully with OAuth2")
             return True
+            
         except Exception as e:
             self.logger.error(f"Failed to initialize email: {str(e)}")
             return False

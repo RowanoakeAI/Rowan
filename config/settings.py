@@ -43,3 +43,4 @@ class Settings:
     EMAIL_SMTP_SERVER = EmailConfig.EMAIL_SMTP_SERVER
     EMAIL_SMTP_PORT = EmailConfig.EMAIL_SMTP_PORT
     EMAIL_ADDRESS = EmailConfig.email
+    # Remove EMAIL_PASSWORD as we're using OAuth2 now

@@ -6,7 +6,10 @@ import threading
 import datetime
 from typing import Optional, Dict, Union
 from functools import lru_cache
-from config.settings import Settings
+
+# Remove the config import that creates the circular dependency
+DEFAULT_LOG_LEVEL = logging.INFO
+DEFAULT_LOG_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'logs')
 
 class LoggerError(Exception):
     """Custom exception for logger related errors"""
@@ -35,7 +38,9 @@ def setup_logger(
     log_format: str = 'standard',
     max_bytes: int = 10485760,  # 10MB
     backup_count: int = 5,
-    env: str = 'development'
+    env: str = 'development',
+    log_level: int = DEFAULT_LOG_LEVEL,
+    log_dir: str = DEFAULT_LOG_DIR
 ) -> logging.Logger:
     """
     Set up and return a logger instance with enhanced features
@@ -46,6 +51,8 @@ def setup_logger(
         max_bytes: Maximum size of log file before rotation
         backup_count: Number of backup files to keep
         env: Environment ('development', 'production', 'testing')
+        log_level: Logging level
+        log_dir: Directory to store log files
     
     Returns:
         logging.Logger: Configured logger instance
@@ -62,18 +69,16 @@ def setup_logger(
         if logger.handlers:
             return logger
             
-        logger.setLevel(Settings.LOG_LEVEL)
+        logger.setLevel(log_level)
         
-        # Validate and create log directory
-        if not os.path.isabs(Settings.LOG_DIR):
-            raise LoggerError("LOG_DIR must be an absolute path")
-        os.makedirs(Settings.LOG_DIR, exist_ok=True)
+        # Create log directory
+        os.makedirs(log_dir, exist_ok=True)
         
-        # Create handlers with rotation
+        # Create handlers
         handlers = []
         
         # Main log file handler
-        main_log_path = os.path.join(Settings.LOG_DIR, f"rowan_{env}.log")
+        main_log_path = os.path.join(log_dir, f"rowan_{env}.log")
         fh = logging.handlers.RotatingFileHandler(
             main_log_path,
             maxBytes=max_bytes,
@@ -83,7 +88,7 @@ def setup_logger(
         handlers.append(fh)
         
         # Error log file handler
-        error_log_path = os.path.join(Settings.LOG_DIR, f"rowan_error_{env}.log")
+        error_log_path = os.path.join(log_dir, f"rowan_error_{env}.log")
         error_fh = logging.handlers.RotatingFileHandler(
             error_log_path,
             maxBytes=max_bytes,
@@ -108,11 +113,9 @@ def setup_logger(
         
         # Configure handlers
         for handler in handlers:
-            handler.setLevel(Settings.LOG_LEVEL)
             handler.setFormatter(formatter)
             logger.addHandler(handler)
         
-        # Prevent propagation to root logger
         logger.propagate = False
         
         return logger

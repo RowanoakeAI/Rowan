@@ -43,6 +43,7 @@ class RowanApplication:
         self.assistant = None
         self.gui = None
         self.module_manager = None
+        self.modules = {}  # Add modules dictionary
         
         # Threading and events
         self.event_queue = Queue()
@@ -88,6 +89,9 @@ class RowanApplication:
             self.assistant = RowanAssistant(model_name=Settings.MODEL_NAME)
             self.module_manager = ModuleManager()
             
+            # Load available modules
+            self.modules = self.module_manager.modules
+            
             # Base configuration for modules
             base_config = {
                 "rowan": self.assistant,
@@ -95,8 +99,12 @@ class RowanApplication:
                 "debug": True
             }
             
-            # Initialize modules in correct order
-            self.initialize_modules()
+            try:
+                # Initialize modules in correct order
+                self.initialize_modules()
+            except Exception as e:
+                self.logger.error(f"Failed to initialize modules: {e}")
+                return False
             
             # Initialize GUI but keep it hidden
             self.gui = RowanGUI(rowan_assistant=self.assistant)
@@ -107,14 +115,16 @@ class RowanApplication:
             self.create_tray_icon()
             self.gui.protocol("WM_DELETE_WINDOW", self.hide_window)
 
-            # Send startup notification
-            notifications = self.module_manager.get_module("notifications")
-            if notifications:
-                notifications.send_notification(
-                    "Rowan Assistant",
-                    "Rowan has started and is running in the background",
-                    timeout=5
-                )
+            # Send startup notification if notifications module is available
+            if "notifications" in self.modules:
+                try:
+                    self.modules["notifications"].send_notification(
+                        "Rowan Assistant",
+                        "Rowan has started and is running in the background",
+                        timeout=5
+                    )
+                except Exception as e:
+                    self.logger.warning(f"Failed to send startup notification: {e}")
 
             return True
 

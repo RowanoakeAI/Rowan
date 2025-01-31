@@ -61,30 +61,33 @@ class EmailModule(ModuleInterface):
         self.check_interval = 300  # 5 minutes default
 
     def initialize(self, config: Dict[str, Any]) -> bool:
-        """Initialize email connections and notification system"""
+        """Initialize email connections using OAuth2"""
         try:
-            # Setup IMAP for receiving
-            self.imap = imaplib.IMAP4_SSL(config["imap_server"])
-            self.imap.login(config["email"], config["password"])
+            credentials = config.get_credentials()
+            if not credentials:
+                raise ValueError("Failed to get Gmail credentials")
+                
+            # Setup IMAP with OAuth2
+            self.imap = imaplib.IMAP4_SSL(config.EMAIL_IMAP_SERVER)
+            self.imap.authenticate('XOAUTH2', lambda x: credentials.token)
             
-            # Setup SMTP for sending
-            self.smtp = smtplib.SMTP_SSL(config["smtp_server"])
-            self.smtp.login(config["email"], config["password"])
-            
-            # Initialize notification module reference
-            self.notification_module = config.get("notification_module")
+            # Setup SMTP with OAuth2
+            self.smtp = smtplib.SMTP_SSL(config.EMAIL_SMTP_SERVER)
+            auth_string = self._build_oauth_string(config.email, credentials.token)
+            self.smtp.auth('XOAUTH2', lambda: auth_string)
             
             self.initialized = True
-            self.logger.info("Email module initialized successfully")
-            
-            if config.get("enable_periodic_check", True):
-                interval = config.get("check_interval", 300)
-                self.start_periodic_check(interval)
-            
+            self.logger.info("Email module initialized successfully with OAuth2")
             return True
+            
         except Exception as e:
             self.logger.error(f"Failed to initialize email: {str(e)}")
             return False
+
+    def _build_oauth_string(self, email: str, access_token: str) -> str:
+        """Build OAuth2 authentication string"""
+        auth_string = f'user={email}\1auth=Bearer {access_token}\1\1'
+        return auth_string.encode('ascii')
 
     def _handle_send(self, input_text: str, context: Dict[str, Any]) -> Dict[str, Any]:
         """Handle email sending commands"""
